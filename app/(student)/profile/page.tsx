@@ -4,13 +4,17 @@ import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import { activityService, profileService } from '@/services';
-import { ActivityStatsResponse } from '@/types/mobile-api';
-import { User, Phone, Shield, BarChart3, Trash2, Camera, LogOut, Key, MessageSquare, HelpCircle, FileText, ExternalLink, MessageCircle, ChevronRight, PlayCircle, BookOpen, GraduationCap } from 'lucide-react';
+import { ActivityStatsResponse, TestHistoryRes } from '@/types/mobile-api';
+import { Phone, BarChart3, Trash2, Camera, LogOut, MessageSquare, HelpCircle, FileText, ExternalLink, MessageCircle, ChevronRight, Crown, GraduationCap, PlayCircle, BookOpen } from 'lucide-react';
+import { formatUntil, packageLabel } from '@/lib/premium';
+import { useRouter } from 'next/navigation';
 import Modal from '@/components/ui/Modal';
 
 export default function ProfilePage() {
     const { user, logout, refreshUser } = useAuth();
+    const router = useRouter();
     const [activityStats, setActivityStats] = useState<ActivityStatsResponse | null>(null);
+    const [testHistory, setTestHistory] = useState<TestHistoryRes | null>(null);
 
     // UI State
     const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -34,6 +38,7 @@ export default function ProfilePage() {
 
     useEffect(() => {
         fetchActivityStats();
+        fetchTestHistory();
         if (user) {
             setEditName(user.name || '');
             setEditPhone(user.phone_number || '');
@@ -57,6 +62,15 @@ export default function ProfilePage() {
             setActivityStats(stats);
         } catch (err) {
             console.error('Failed to fetch activity stats:', err);
+        }
+    };
+
+    const fetchTestHistory = async () => {
+        try {
+            const history = await profileService.getTestHistory({ page: 1, limit: 10 });
+            setTestHistory(history);
+        } catch (err) {
+            console.error('Failed to fetch test history:', err);
         }
     };
 
@@ -167,6 +181,11 @@ export default function ProfilePage() {
                         </div>
 
                         <h3 className="text-2xl font-black text-gray-900 mb-1">{user?.name}</h3>
+                        {user?.is_ustoz && (
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest mb-3">
+                                Ustoz
+                            </span>
+                        )}
                         <p className="text-gray-400 font-medium mb-8 flex flex-col items-center justify-center gap-1">
                             {!user?.email ? (
                                 <span className="flex items-center gap-2"><Phone size={14} /> {user?.phone_number}</span>
@@ -211,6 +230,83 @@ export default function ProfilePage() {
 
                 {/* Right Column: Dynamic Forms & Stats */}
                 <div className="lg:col-span-2 space-y-8">
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-soft">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-black text-gray-900 flex items-center gap-3">
+                                <Crown className="text-primary" />
+                                Premium
+                            </h3>
+                            {!user?.is_ustoz && (
+                                <Link href="/premium" className="text-xs font-black uppercase tracking-widest text-primary">
+                                    Premium olish
+                                </Link>
+                            )}
+                        </div>
+                        {user?.is_ustoz ? (
+                            <p className="font-bold text-gray-700">Ustoz — doimiy kirish</p>
+                        ) : user?.packages?.some((p) => p.is_active) ? (
+                            <div className="space-y-3">
+                                {user.packages.filter((p) => p.is_active).map((p) => (
+                                    <div key={p.package} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50">
+                                        <div>
+                                            <p className="font-black text-gray-900">Premium: {packageLabel(p.package)}</p>
+                                            {p.until && (
+                                                <p className="text-xs font-medium text-gray-400">{formatUntil(p.until)} gacha</p>
+                                            )}
+                                        </div>
+                                        <Link href={`/premium?package=${p.package}`} className="text-xs font-black uppercase tracking-widest text-primary">
+                                            Uzaytirish
+                                        </Link>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-between">
+                                <p className="font-bold text-gray-500">Premium yo‘q</p>
+                                <Link href="/premium" className="px-5 py-3 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest">
+                                    Premium olish
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-soft">
+                        <h3 className="text-xl font-black text-gray-900 mb-2">
+                            Test natijalari
+                            {typeof user?.tests_count === 'number' && (
+                                <span className="ml-2 text-primary/40">{user.tests_count}</span>
+                            )}
+                        </h3>
+                        {testHistory?.summary && (
+                            <p className="text-sm text-gray-400 font-medium mb-6">
+                                O‘rtacha {Math.round(testHistory.summary.average_percent)}% · eng yaxshi {Math.round(testHistory.summary.best_percent)}%
+                            </p>
+                        )}
+                        {testHistory?.data?.length ? (
+                            <div className="space-y-3">
+                                {testHistory.data.map((item) => (
+                                    <button
+                                        key={item.test_id}
+                                        onClick={() => router.push(`/lessons/${item.lesson_id}/quiz/${item.test_id}?attempt=${item.last_attempt_id}`)}
+                                        className="w-full text-left p-4 rounded-2xl bg-slate-50 hover:bg-primary/5 transition-colors"
+                                    >
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="min-w-0">
+                                                <p className="font-black text-gray-900 truncate">{item.test_title}</p>
+                                                <p className="text-xs text-gray-400 font-medium">
+                                                    {item.course_name} · {formatUntil(item.last_finished_at)} · {item.attempts} urinish
+                                                </p>
+                                            </div>
+                                            <span className="text-lg font-black text-primary">{Math.round(item.best_percent)}%</span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-gray-400 font-medium">Hali test ishlanmagan.</p>
+                        )}
+                    </div>
+
                     {/* Activity Stats */}
                     {activityStats && (
                         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-soft">

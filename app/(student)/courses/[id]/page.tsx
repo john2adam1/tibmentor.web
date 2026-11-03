@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { courseService, orderService } from '@/services';
-import { MobileCourseRes } from '@/types/mobile-api';
-import Image from 'next/image';
+import { courseService } from '@/services';
+import { ContentType, MobileCourseRes } from '@/types/mobile-api';
 import Link from 'next/link';
-import { notFound, useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { packageLabel } from '@/lib/premium';
 
 export default function CourseDetailPage() {
     const params = useParams();
@@ -59,20 +59,17 @@ export default function CourseDetailPage() {
         );
     }
 
-    // ✅ ROBUST FREE COURSE DETECTION
-    // A course is free if ANY of these conditions are true:
-    // 1. is_public flag is true (primary indicator)
-    // 2. No price array exists (undefined/null)
-    // 3. Price array is empty
-    // 4. ALL prices in the array are 0
-    const isFree = !!(
-        course.is_public ||
-        !course.price ||
-        course.price.length === 0 ||
-        course.price.every(p => p.price === 0)
-    );
-    // ✅ FIX: Free courses should ALWAYS be considered as having access
-    const hasAccess = !!(course.has_access || isFree);
+    const isFree = !!course.is_public;
+    const hasAccess = !!course.has_access;
+    const premiumHref = course.package
+        ? `/premium?package=${course.package}`
+        : '/premium';
+    const contentTypeLabel: Record<ContentType, string> = {
+        video: 'Video',
+        audio: 'Audio',
+        document: 'Hujjat',
+        test: 'Test',
+    };
 
     const handleStartFreeCourse = async () => {
         try {
@@ -162,10 +159,8 @@ export default function CourseDetailPage() {
                             </div>
                         </div>
 
-                        {/* ✅ ACCESS CONTROL: Buy button only if not free and can_buy is true */}
-                        {course.has_access ? (
+                        {hasAccess ? (
                             <div className="flex items-center gap-3 py-4 px-6 rounded-2xl font-bold bg-primary/5 text-primary border border-primary/10">
-                                <span className="text-xl">✅</span>
                                 Kirish huquqi mavjud
                             </div>
                         ) : isFree ? (
@@ -176,18 +171,13 @@ export default function CourseDetailPage() {
                             >
                                 {isEnrolling ? 'Yuklanmoqda...' : 'O\'RGANISHNI BOSHLASH'}
                             </button>
-                        ) : course.can_buy ? (
+                        ) : (
                             <Link
-                                href={`/tariffs?courseId=${id}`}
+                                href={premiumHref}
                                 className="w-full py-5 bg-primary text-white rounded-2xl font-black text-center shadow-lg shadow-primary/20 hover:bg-primary-600 transition-all active:scale-[0.98] tracking-widest uppercase text-sm"
                             >
-                                Kursni sotib olish
+                                {packageLabel(course.package)} Premiumini olish
                             </Link>
-                        ) : (
-                            <div className="flex items-center gap-3 py-4 px-6 rounded-2xl font-bold bg-amber-50 text-amber-600 border border-amber-100">
-                                <span className="text-xl">⏳</span>
-                                Sotuv hozircha yopilgan
-                            </div>
                         )}
                     </div>
                 </div>
@@ -221,13 +211,24 @@ export default function CourseDetailPage() {
 
                                                 return (
                                                     <div key={lesson.id} className="p-5 flex items-center justify-between transition-colors hover:bg-slate-50/50 group">
-                                                        <div className="flex items-center gap-4">
+                                                        <div className="flex items-center gap-4 min-w-0">
                                                             <span className="text-xs font-black text-gray-300 group-hover:text-primary/40 transition-colors">
                                                                 {lesson.order_num < 10 ? `0${lesson.order_num}` : lesson.order_num}
                                                             </span>
-                                                            <span className="font-bold text-gray-700 group-hover:text-gray-900 transition-colors">
-                                                                {lesson.name}
-                                                            </span>
+                                                            <div className="min-w-0">
+                                                                <span className="font-bold text-gray-700 group-hover:text-gray-900 transition-colors block">
+                                                                    {lesson.name}
+                                                                </span>
+                                                                {lesson.content_types && lesson.content_types.length > 0 && (
+                                                                    <div className="flex flex-wrap gap-1.5 mt-1">
+                                                                        {lesson.content_types.map((t) => (
+                                                                            <span key={t} className="text-[9px] font-black uppercase tracking-widest text-gray-400 bg-slate-50 px-2 py-0.5 rounded-full">
+                                                                                {contentTypeLabel[t] || t}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         <div>
                                                             {lessonAccessible ? (

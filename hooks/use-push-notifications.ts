@@ -1,11 +1,15 @@
 import { useEffect, useState, useCallback } from 'react';
-import { getMessaging, getToken } from 'firebase/messaging';
-import { app, messaging } from '@/lib/firebase';
+import { getToken, onMessage } from 'firebase/messaging';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+import { messaging } from '@/lib/firebase';
 import { profileService } from '@/services/profile';
 import { useAuth } from '@/lib/auth-context';
+import { pathForPushData } from '@/lib/push-routing';
 
 export const usePushNotifications = () => {
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
+    const router = useRouter();
     const [permission, setPermission] = useState<NotificationPermission>('default');
     const [loading, setLoading] = useState(false);
 
@@ -58,12 +62,32 @@ export const usePushNotifications = () => {
         }
     };
 
-    // Auto-sync token if permission is already granted and user is logged in
     useEffect(() => {
         if (user && permission === 'granted' && !sessionStorage.getItem('fcm_token_synced')) {
             syncToken();
         }
     }, [user, permission, syncToken]);
+
+    useEffect(() => {
+        if (!messaging || permission !== 'granted') return;
+
+        const unsubscribe = onMessage(messaging, (payload) => {
+            const type = payload.data?.type;
+            const title = payload.notification?.title || 'Yangi bildirishnoma';
+            const body = payload.notification?.body || '';
+            toast(`${title}${body ? `: ${body}` : ''}`);
+
+            if (type === 'payment_success' || type === 'payment_failed') {
+                refreshUser().catch(() => undefined);
+            }
+
+            if (type === 'inactive_reminder') {
+                router.push('/dashboard');
+            }
+        });
+
+        return unsubscribe;
+    }, [permission, refreshUser, router]);
 
     return { permission, requestPermission, loading };
 };

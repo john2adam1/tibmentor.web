@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Activity, Bell, User, LogOut, Grid } from 'lucide-react';
+import { Home, Activity, User, LogOut, Grid, Crown } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 
@@ -11,6 +11,7 @@ const navItems = [
     { name: 'Asosiy', href: '/dashboard', icon: Home },
     { name: 'Barcha kurslar', href: '/courses', icon: Grid },
     { name: 'Reyting', href: '/leaderboard', icon: Activity },
+    { name: 'Premium', href: '/premium', icon: Crown },
     { name: 'Profil', href: '/profile', icon: User },
 ];
 

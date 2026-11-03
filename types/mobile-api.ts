@@ -58,6 +58,15 @@ export interface ChangePasswordBody {
 // User/Profile Types
 // ============================================================================
 
+export type PremiumPackage = 'fundamental' | 'preclinical' | 'clinical';
+export type ContentType = 'video' | 'audio' | 'document' | 'test';
+
+export interface UserPackageStatus {
+  package: PremiumPackage;
+  is_active: boolean;
+  until: string | null;
+}
+
 export interface UserRes {
   id: string;
   phone_number: string;
@@ -66,6 +75,13 @@ export interface UserRes {
   fcm_token?: string;
   image_url?: string;
   language?: string;
+  is_premium?: boolean;
+  premium_until?: string | null;
+  is_ustoz?: boolean;
+  first_login_at?: string;
+  last_seen_at?: string;
+  tests_count?: number;
+  packages?: UserPackageStatus[];
   created_at: string;
   updated_at: string;
 }
@@ -112,6 +128,7 @@ export interface MobileCourseRes {
   has_access: boolean;
   lessons: number;
   tests: number;
+  package?: PremiumPackage | null;
   modules: MobileCourseModuleRes[];
   price?: CoursePriceOption[];
   teacher_id?: string;
@@ -133,6 +150,7 @@ export interface MobileCourseLessonRes {
   order_num: number;
   is_completed: boolean;
   is_public: boolean;
+  content_types?: ContentType[];
 }
 
 export interface CoursePriceOption {
@@ -163,6 +181,14 @@ export interface SourceUpdateBody {
   file?: File;
 }
 
+export interface QuizSummary {
+  id: string;
+  title: string;
+  time_limit_sec: number | null;
+  question_count: number;
+  best_percent: number | null;
+}
+
 export interface SourceLessonMobileRes {
   id: string;
   name: string;
@@ -170,8 +196,11 @@ export interface SourceLessonMobileRes {
   duration: number;
   is_completed: boolean;
   type: string;
+  content_types?: ContentType[];
   videos: SourceMobile[];
+  audios?: SourceMobile[];
   documents: SourceMobile[];
+  quizzes?: QuizSummary[];
   tests: SourceMobile[];
 }
 
@@ -217,6 +246,7 @@ export interface Subject {
   is_active: boolean;
   order_num?: number;
   total_courses?: number;
+  package?: PremiumPackage | null;
   created_at: string;
   updated_at: string;
 }
@@ -312,6 +342,8 @@ export interface UserNotification {
   title: string;
   message: string;
   is_read: boolean;
+  type?: string;
+  course_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -367,11 +399,15 @@ export interface RatingUser {
   image_url?: string;
   rank: number;
   activity: number;
+  score?: number;
+  tests_count?: number;
+  is_ustoz?: boolean;
   is_me?: boolean;
 }
 
 export interface RatingResponse {
   type: string;
+  by?: 'activity' | 'test';
   limit: number;
   items: RatingUser[];
   me?: RatingUser;
@@ -512,6 +548,7 @@ export interface ActivityQueryParams {
 
 export interface RatingQueryParams {
   type?: 'day' | 'week' | 'month' | 'year' | 'total';
+  by?: 'activity' | 'test';
   limit?: number;
 }
 
@@ -523,6 +560,8 @@ export type Language = 'uz' | 'ru' | 'en';
 
 export interface PromocodeReq {
   promocode: string;
+  type?: 'premium' | string;
+  package?: PremiumPackage;
   tariff_id?: string;
   course_id?: string;
 }
@@ -538,4 +577,117 @@ export interface PromocodeRes {
   course_amount: number | null; // Original price
   discount_amount: number | null; // Calculated discount amount
   total_amount: number | null; // Final price
+}
+
+// ============================================================================
+// Quiz (in-app test)
+// ============================================================================
+
+export interface QuizOption {
+  id: string;
+  text: string;
+}
+
+export interface QuizQuestion {
+  id: string;
+  text: string;
+  image_url?: string | null;
+  options: QuizOption[];
+}
+
+export interface QuizDetail {
+  id: string;
+  lesson_id: string;
+  title: string;
+  time_limit_sec: number | null;
+  best_percent: number | null;
+  questions: QuizQuestion[];
+}
+
+export interface QuizStartRes {
+  attempt_id: string;
+  started_at: string;
+  time_limit_sec: number | null;
+}
+
+export interface QuizAnswerReq {
+  question_id: string;
+  option_id: string;
+}
+
+export interface QuizAnswerRes {
+  is_correct: boolean;
+  correct_option_id: string;
+}
+
+export interface QuizFinishRes {
+  attempt_id: string;
+  test_id: string;
+  correct_count: number;
+  total_count: number;
+  percent: number;
+  next_lesson_id: string | null;
+}
+
+// ============================================================================
+// Premium
+// ============================================================================
+
+export interface PremiumPackageOffer {
+  package: PremiumPackage;
+  price: number;
+  duration_months: number;
+  is_active: boolean;
+  until: string | null;
+}
+
+export interface PremiumRes {
+  is_premium: boolean;
+  premium_until: string | null;
+  is_ustoz: boolean;
+  packages: PremiumPackageOffer[];
+}
+
+export interface PremiumOrderBody {
+  package: PremiumPackage;
+  promocode_id?: string;
+}
+
+export interface PremiumOrderRes {
+  message: string;
+  order_id: string;
+  url?: string;
+}
+
+// ============================================================================
+// Test history
+// ============================================================================
+
+export interface TestHistorySummary {
+  tests_count: number;
+  average_percent: number;
+  best_percent: number;
+}
+
+export interface TestHistoryItem {
+  test_id: string;
+  test_title: string;
+  lesson_id: string;
+  course_id: string;
+  course_name: string;
+  best_percent: number;
+  attempts: number;
+  last_attempt_id: string;
+  last_finished_at: string;
+}
+
+export interface TestHistoryRes {
+  summary: TestHistorySummary;
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+  has_next: boolean;
+  has_previous: boolean;
+  data: TestHistoryItem[];
 }

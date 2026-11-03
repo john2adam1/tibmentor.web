@@ -28,3 +28,31 @@ messaging.onBackgroundMessage((payload) => {
 
     self.registration.showNotification(notificationTitle, notificationOptions);
 });
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const data = event.notification.data || {};
+    let path = '/notifications';
+    if (data.type === 'inactive_reminder') {
+        path = '/dashboard';
+    } else if (data.type === 'payment_success') {
+        path = data.course_id ? `/courses/${data.course_id}` : '/premium';
+    } else if (data.type === 'payment_failed') {
+        path = '/premium';
+    }
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            for (const client of clientList) {
+                if ('focus' in client) {
+                    client.focus();
+                    if (client.navigate) client.navigate(path);
+                    return;
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow(path);
+            }
+        })
+    );
+});

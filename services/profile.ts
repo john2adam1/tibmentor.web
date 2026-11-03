@@ -3,7 +3,7 @@
 
 import { apiClient } from '@/lib/api-client';
 import { getMediaUrl } from '@/lib/utils';
-import { UserRes, ProfileUpdateBody } from '@/types/mobile-api';
+import { UserRes, ProfileUpdateBody, TestHistoryRes } from '@/types/mobile-api';
 
 export const profileService = {
     /**
@@ -16,6 +16,18 @@ export const profileService = {
             user.image_url = getMediaUrl(user.image_url);
         }
         return user;
+    },
+
+    /**
+     * Grouped test results history
+     */
+    getTestHistory: async (params?: { page?: number; limit?: number }): Promise<TestHistoryRes> => {
+        const searchParams = new URLSearchParams();
+        if (params?.page) searchParams.set('page', String(params.page));
+        if (params?.limit) searchParams.set('limit', String(params.limit));
+        const query = searchParams.toString();
+        const response = await apiClient<any>(`/user/test-history${query ? `?${query}` : ''}`);
+        return response.data || response;
     },
 
     /**

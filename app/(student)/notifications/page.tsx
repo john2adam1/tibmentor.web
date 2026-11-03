@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { notificationService } from '@/services';
 import { UserNotification } from '@/types/mobile-api';
-import { Bell, CheckCheck, Inbox, Calendar, Trash2 } from 'lucide-react';
+import { CheckCheck, Inbox, Calendar } from 'lucide-react';
+import { pathForPushData } from '@/lib/push-routing';
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
@@ -106,7 +109,16 @@ export default function NotificationsPage() {
           {notifications.map((notification) => (
             <div
               key={notification.id}
+              onClick={() => {
+                if (notification.type) {
+                  router.push(pathForPushData({
+                    type: notification.type,
+                    course_id: notification.course_id,
+                  }));
+                }
+              }}
               className={`bg-white p-8 rounded-[2.5rem] border border-gray-100 transition-all duration-500 hover:shadow-premium group relative overflow-hidden
+                ${notification.type ? 'cursor-pointer' : ''}
                 ${!notification.is_read ? 'ring-2 ring-primary/5 shadow-soft border-primary/10' : 'opacity-80'}`}
             >
               {!notification.is_read && (
@@ -136,7 +148,10 @@ export default function NotificationsPage() {
 
                 {!notification.is_read && (
                   <button
-                    onClick={() => handleMarkAsRead(notification.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleMarkAsRead(notification.id);
+                    }}
                     className="self-end sm:self-start px-5 py-3 bg-slate-50 text-gray-400 rounded-2xl font-bold text-xs hover:bg-primary-tint hover:text-primary transition-all flex items-center gap-2 group/btn"
                   >
                     <CheckCheck size={16} className="group-hover/btn:scale-110 transition-transform" />

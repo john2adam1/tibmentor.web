@@ -13,6 +13,8 @@ export { orderService } from './order';
 export { activityService } from './activity';
 export { ratingService } from './rating';
 export { promocodeService } from './promocode';
+export { quizService } from './quiz';
+export { premiumService } from './premium';
 export { appRouteService } from './appRoute';
 export { sourceService } from './source';
 

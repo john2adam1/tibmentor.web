@@ -7,6 +7,7 @@ const nextConfig = {
       'dev.axadjonovsardorbek.uz',
       'prod.axadjonovsardorbek.uz',
       'minio.axadjonovsardorbek.uz',
+      'dev.imedteam.uz',
       'prod.imedteam.uz',
       'via.placeholder.com'
     ],

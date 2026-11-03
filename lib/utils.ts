@@ -48,7 +48,7 @@ export function getMediaUrl(url: string | undefined | null): string {
     return url;
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://prod.imedteam.uz';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://dev.imedteam.uz';
 
   // Handle case where path starts with /media
   if (url.startsWith('/media')) {

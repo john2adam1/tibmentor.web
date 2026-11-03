@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react';
 import { lessonService, activityService } from '@/services';
 import { SourceLessonMobileRes, SourceMobile } from '@/types/mobile-api';
 import { useRouter, useParams } from 'next/navigation';
-import { Play, FileText, ClipboardList, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Play, FileText, ClipboardList, ArrowLeft, CheckCircle2, AlertCircle, Headphones } from 'lucide-react';
 import { getMediaUrl } from '@/lib/utils';
 import PDFViewer from '@/components/ui/PDFViewer';
 import confetti from 'canvas-confetti';
-import { useAuth } from '@/lib/auth-context';
+import { LESSON_NO_ACCESS } from '@/lib/premium';
+import { ContentType } from '@/types/mobile-api';
+import Link from 'next/link';
 
 /** Extracts YouTube video ID from any YouTube URL format */
 const getYoutubeId = (url: string = ''): string => {
@@ -94,10 +96,10 @@ export default function LessonPage() {
     const id = params?.id as string;
     const router = useRouter();
 
-    const { user: authUser } = useAuth();
     const [lesson, setLesson] = useState<SourceLessonMobileRes | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const [noAccess, setNoAccess] = useState(false);
     const [startTime] = useState(Date.now());
     const [viewPdf, setViewPdf] = useState<{ url: string; name: string } | null>(null);
 
@@ -113,8 +115,14 @@ export default function LessonPage() {
             setIsLoading(true);
             const data = await lessonService.getLessonById(id);
             setLesson(data);
+            setNoAccess(false);
         } catch (err: any) {
-            setError(err.message || 'Dars ma’lumotlarini yuklashda xatolik yuz berdi');
+            if (err.message === LESSON_NO_ACCESS || err.status === 403) {
+                setNoAccess(true);
+                setError('');
+            } else {
+                setError(err.message || 'Dars ma’lumotlarini yuklashda xatolik yuz berdi');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -180,11 +188,33 @@ export default function LessonPage() {
         );
     }
 
+    if (noAccess) {
+        return (
+            <div className="max-w-xl mx-auto py-20 text-center px-6">
+                <div className="bg-primary/5 border border-primary/10 rounded-[2.5rem] p-10 mb-8">
+                    <p className="text-primary font-black mb-2 uppercase tracking-widest text-sm">Kirish yopiq</p>
+                    <p className="text-gray-500 font-medium mb-8">Bu dars Premium paket orqali ochiladi.</p>
+                    <Link
+                        href="/premium"
+                        className="inline-flex w-full justify-center py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs"
+                    >
+                        Premium olish
+                    </Link>
+                </div>
+                <button
+                    onClick={() => router.back()}
+                    className="inline-flex items-center gap-2 text-primary font-black hover:gap-3 transition-all uppercase tracking-widest text-xs"
+                >
+                    <ArrowLeft size={16} /> Orqaga qaytish
+                </button>
+            </div>
+        );
+    }
+
     if (error || !lesson) {
         return (
             <div className="max-w-xl mx-auto py-20 text-center px-6">
                 <div className="bg-primary/5 border border-primary/10 rounded-[2.5rem] p-10 mb-8">
-                    <div className="text-4xl mb-4">⚠️</div>
                     <p className="text-primary font-black mb-2 uppercase tracking-widest text-sm">Xatolik yuz berdi</p>
                     <p className="text-gray-500 font-medium">{error || 'Dars topilmadi'}</p>
                 </div>
@@ -197,6 +227,20 @@ export default function LessonPage() {
             </div>
         );
     }
+
+    const inferredTypes: ContentType[] = [
+        ...(lesson.videos?.length ? (['video'] as ContentType[]) : []),
+        ...(lesson.audios?.length ? (['audio'] as ContentType[]) : []),
+        ...(lesson.documents?.length ? (['document'] as ContentType[]) : []),
+        ...(lesson.quizzes?.length ? (['test'] as ContentType[]) : []),
+    ];
+    const contentTypes = (lesson.content_types && lesson.content_types.length > 0)
+        ? lesson.content_types
+        : inferredTypes;
+    const showVideo = contentTypes.includes('video') && lesson.videos?.length > 0;
+    const showAudio = contentTypes.includes('audio') && (lesson.audios?.length || 0) > 0;
+    const showDocs = contentTypes.includes('document') && lesson.documents?.length > 0;
+    const showQuiz = contentTypes.includes('test') && (lesson.quizzes?.length || 0) > 0;
 
     return (
         <div className="max-w-7xl mx-auto px-6 lg:px-10 py-10">
@@ -233,14 +277,11 @@ export default function LessonPage() {
 
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                {/* Main Content: Video and Completion */}
                 <div className="lg:col-span-2 space-y-10">
-                    {/* Video Player */}
-                    {lesson.videos && lesson.videos.length > 0 ? (
+                    {showVideo && (
                         <div className="space-y-6">
                             {lesson.videos.map((v, idx) => (
                                 <div key={v.id} className="group">
-                                    {/* Video header */}
                                     <div className="flex items-center gap-3 mb-4">
                                         <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
                                             <Play size={14} fill="currentColor" />
@@ -256,8 +297,6 @@ export default function LessonPage() {
                                             )}
                                         </div>
                                     </div>
-
-                                    {/* YouTube player */}
                                     <div
                                         className="aspect-video bg-black rounded-[2rem] overflow-hidden shadow-2xl ring-1 ring-white/10 group-hover:ring-primary/20 transition-all duration-500 relative"
                                         onContextMenu={(e) => e.preventDefault()}
@@ -267,17 +306,27 @@ export default function LessonPage() {
                                 </div>
                             ))}
                         </div>
-                    ) : (
-                        <div className="aspect-video bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-gray-100 flex flex-col items-center justify-center text-gray-400">
-                            <Play size={48} className="mb-4 opacity-20" />
-                            <p className="font-medium italic">Ushbu darsda video mavjud emas</p>
+                    )}
+
+                    {showAudio && (
+                        <div className="space-y-4">
+                            {lesson.audios!.map((a) => (
+                                <div key={a.id} className="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-soft">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                            <Headphones size={16} />
+                                        </div>
+                                        <h3 className="font-bold text-gray-900">{a.name || 'Audio'}</h3>
+                                    </div>
+                                    <audio controls className="w-full" src={a.url || a.video_url} />
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
 
-                {/* Sidebar: Documents and Tests */}
                 <div className="space-y-8">
-                    {/* Documents Card */}
+                    {showDocs && (
                     <div className="bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-soft">
                         <div className="flex items-center gap-3 mb-8">
                             <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
@@ -285,30 +334,25 @@ export default function LessonPage() {
                             </div>
                             <h3 className="text-lg font-black text-gray-900 tracking-tight">Materiallar</h3>
                         </div>
-
-                        {lesson.documents && lesson.documents.length > 0 ? (
-                            <ul className="space-y-3">
-                                {lesson.documents.map((doc) => (
-                                    <li key={doc.id}>
-                                        <button
-                                            onClick={() => setViewPdf({ url: getMediaUrl(doc.url), name: doc.name })}
-                                            className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-transparent hover:border-blue-100 hover:bg-blue-50/30 transition-all group text-left"
-                                        >
-                                            <div className="w-8 h-8 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 group-hover:text-blue-500 transition-colors">
-                                                <FileText size={16} />
-                                            </div>
-                                            <span className="text-sm font-bold text-gray-700 group-hover:text-gray-900 line-clamp-1">{doc.name}</span>
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="text-sm text-gray-400 font-medium italic py-4 text-center">Qo‘shimcha materiallar yo‘q.</p>
-                        )}
+                        <ul className="space-y-3">
+                            {lesson.documents.map((doc) => (
+                                <li key={doc.id}>
+                                    <button
+                                        onClick={() => setViewPdf({ url: getMediaUrl(doc.url), name: doc.name })}
+                                        className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-transparent hover:border-blue-100 hover:bg-blue-50/30 transition-all group text-left"
+                                    >
+                                        <div className="w-8 h-8 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 group-hover:text-blue-500 transition-colors">
+                                            <FileText size={16} />
+                                        </div>
+                                        <span className="text-sm font-bold text-gray-700 group-hover:text-gray-900 line-clamp-1">{doc.name}</span>
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
+                    )}
 
-
-                    {/* Tests Card */}
+                    {showQuiz && (
                     <div className="bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-soft">
                         <div className="flex items-center gap-3 mb-8">
                             <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
@@ -316,27 +360,29 @@ export default function LessonPage() {
                             </div>
                             <h3 className="text-lg font-black text-gray-900 tracking-tight">Testlar</h3>
                         </div>
-
-                        {lesson.tests && lesson.tests.length > 0 ? (
-                            <ul className="space-y-3">
-                                {lesson.tests.map((test) => (
-                                    <li key={test.id}>
-                                        <button
-                                            onClick={() => setViewPdf({ url: getMediaUrl(test.url), name: test.name })}
-                                            className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-transparent hover:border-amber-100 hover:bg-amber-50/30 transition-all group text-left"
-                                        >
-                                            <div className="w-8 h-8 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 group-hover:text-amber-500 transition-colors">
-                                                <ClipboardList size={16} />
-                                            </div>
-                                            <span className="text-sm font-bold text-gray-700 group-hover:text-gray-900 line-clamp-1">{test.name}</span>
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="text-sm text-gray-400 font-medium italic py-4 text-center">Ushbu darsda testlar mavjud emas.</p>
-                        )}
+                        <ul className="space-y-3">
+                            {lesson.quizzes!.map((quiz) => (
+                                <li key={quiz.id}>
+                                    <Link
+                                        href={`/lessons/${lesson.id}/quiz/${quiz.id}`}
+                                        className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-transparent hover:border-amber-100 hover:bg-amber-50/30 transition-all group text-left"
+                                    >
+                                        <div className="w-8 h-8 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 group-hover:text-amber-500 transition-colors">
+                                            <ClipboardList size={16} />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <span className="text-sm font-bold text-gray-700 group-hover:text-gray-900 line-clamp-1 block">{quiz.title}</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                                {quiz.question_count} savol
+                                                {quiz.best_percent != null ? ` · eng yaxshi ${Math.round(quiz.best_percent)}%` : ''}
+                                            </span>
+                                        </div>
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
+                    )}
 
 
 

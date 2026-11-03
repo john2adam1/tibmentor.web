@@ -11,7 +11,8 @@ export async function GET(request: NextRequest) {
     try {
         let finalUrl = url;
         if (!url.startsWith('http')) {
-            finalUrl = `https://prod.axadjonovsardorbek.uz${url.startsWith('/') ? '' : '/'}${url}`;
+            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://dev.imedteam.uz').replace(/\/$/, '');
+            finalUrl = `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
         }
 
         const response = await fetch(finalUrl);

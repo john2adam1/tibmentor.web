@@ -3,9 +3,10 @@
 // Supports multiple namespaces (mobile/web)
 
 import { getCookie, setCookie, removeCookie } from './cookies';
+import { ApiError } from './api-error';
 
-// Base URL: Try environment variable first, then fallback to production
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://prod.axadjonovsardorbek.uz/web';
+// Base URL: env first, then local/dev fallback. Production URL belongs only on the server .env.
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dev.imedteam.uz';
 
 export interface ApiClientOptions extends RequestInit {
     requiresAuth?: boolean;
@@ -68,7 +69,7 @@ export async function apiClient<T>(
         }
 
         if (response.status === 403) {
-            throw new Error(data.message || data.error || 'Ruxsat yo\'q');
+            throw new ApiError(data.message || data.error || 'Ruxsat yo\'q', 403);
         }
 
         if (response.status === 401) {
@@ -88,11 +89,11 @@ export async function apiClient<T>(
                 throw new Error('Sessiya muddati tugadi yoki boshqa qurilmada kirilgan');
             }
 
-            throw new Error(data.message || data.error || `API error: ${response.status}`);
+            throw new ApiError(data.message || data.error || `API error: ${response.status}`, response.status);
         }
 
         if (!response.ok) {
-            throw new Error(data.message || data.error || `API error: ${response.status}`);
+            throw new ApiError(data.message || data.error || `API error: ${response.status}`, response.status);
         }
 
         return data as T;

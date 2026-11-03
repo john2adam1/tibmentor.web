@@ -19,6 +19,7 @@ export default function LeaderboardPage() {
     const [ratings, setRatings] = useState<RatingResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [period, setPeriod] = useState<'day' | 'week' | 'month' | 'year' | 'total'>('total');
+    const [by, setBy] = useState<'activity' | 'test'>('activity');
     const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
     const [currentTime, setCurrentTime] = useState<string>('');
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -27,7 +28,7 @@ export default function LeaderboardPage() {
         if (authLoading || !isAuthenticated) return;
         fetchRatings();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [period, authLoading, isAuthenticated]);
+    }, [period, by, authLoading, isAuthenticated]);
 
     useEffect(() => {
         const updateTime = () => {
@@ -53,13 +54,21 @@ export default function LeaderboardPage() {
     const fetchRatings = async () => {
         setIsLoading(true);
         try {
-            const response = await ratingService.getRating({ type: period, limit: 100 });
+            const response = await ratingService.getRating({ type: period, by, limit: 100 });
             setRatings(response);
         } catch (error) {
             console.error('Failed to fetch ratings:', error);
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const formatScore = (user: RatingUser) => {
+        if (by === 'test') {
+            const score = user.score ?? 0;
+            return `${Math.round(score)}%`;
+        }
+        return formatActivity(user.activity);
     };
 
     const formatActivity = (activity: number) => {
@@ -148,12 +157,12 @@ export default function LeaderboardPage() {
 
                                     <div className="text-center w-full px-1">
                                         <h3 className={`text-xs font-black text-gray-900 truncate mb-1`}>
-                                            {user.name} {user.is_me ? '(Siz)' : ''}
+                                            {user.name} {user.is_me ? '(Siz)' : ''} {user.is_ustoz ? '· Ustoz' : ''}
                                         </h3>
                                         <div className={`inline-flex px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-tight
                                             ${isFirst ? 'bg-yellow-400/10 text-yellow-600' :
                                                 isSecond ? 'bg-gray-100 text-gray-500' : 'bg-orange-50 text-orange-600'}`}>
-                                            {formatActivity(user.activity)}
+                                            {formatScore(user)}
                                         </div>
                                     </div>
                                 </div>
@@ -182,6 +191,20 @@ export default function LeaderboardPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-4 relative" ref={dropdownRef}>
+                        <div className="flex p-1 bg-slate-100 rounded-2xl">
+                            <button
+                                onClick={() => setBy('activity')}
+                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${by === 'activity' ? 'bg-white text-gray-900' : 'text-gray-400'}`}
+                            >
+                                Faollik
+                            </button>
+                            <button
+                                onClick={() => setBy('test')}
+                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${by === 'test' ? 'bg-white text-gray-900' : 'text-gray-400'}`}
+                            >
+                                Test
+                            </button>
+                        </div>
                         <button
                             onClick={() => setShowPeriodDropdown(!showPeriodDropdown)}
                             className="flex items-center gap-4 bg-slate-50 hover:bg-slate-100 px-6 py-3 rounded-2xl text-xs font-black transition-all shadow-inner group"
@@ -226,12 +249,12 @@ export default function LeaderboardPage() {
                                     )}
                                 </div>
                                 <span className="font-black tracking-tight text-primary">
-                                    {meOutsideTop.name} (Siz)
+                                    {meOutsideTop.name} (Siz) {meOutsideTop.is_ustoz ? '· Ustoz' : ''}
                                 </span>
                             </div>
                             <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl text-[11px] font-black text-primary shadow-sm flex items-center gap-2 border border-primary/10">
                                 <Clock size={12} />
-                                {formatActivity(meOutsideTop.activity)}
+                                {formatScore(meOutsideTop)}
                             </div>
                         </div>
                     )}
@@ -254,13 +277,13 @@ export default function LeaderboardPage() {
                                         )}
                                     </div>
                                     <span className={`font-black tracking-tight text-gray-900 group-hover:text-primary transition-colors ${user.is_me ? 'text-primary' : ''}`}>
-                                        {user.name} {user.is_me ? '(Siz)' : ''}
+                                        {user.name} {user.is_me ? '(Siz)' : ''} {user.is_ustoz ? '· Ustoz' : ''}
                                     </span>
                                 </div>
 
                                 <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl text-[11px] font-black text-gray-500 shadow-sm flex items-center gap-2 border border-gray-100">
                                     <Clock size={12} className="text-gray-400" />
-                                    {formatActivity(user.activity)}
+                                    {formatScore(user)}
                                 </div>
                             </div>
                         ))

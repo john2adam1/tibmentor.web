@@ -30,6 +30,14 @@ export const lessonService = {
             }));
         }
 
+        if (response.audios) {
+            response.audios = response.audios.map(a => ({
+                ...a,
+                url: getMediaUrl(a.url),
+                video_url: a.video_url ? getMediaUrl(a.video_url) : undefined,
+            }));
+        }
+
         if (response.documents) {
             response.documents = response.documents.map(doc => ({
                 ...doc,
