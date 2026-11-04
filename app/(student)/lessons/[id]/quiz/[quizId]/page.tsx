@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, Clock, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Check, Clock, RefreshCw, X } from 'lucide-react';
 import { quizService } from '@/services';
 import { QuizDetail, QuizFinishRes, QuizQuestion } from '@/types/mobile-api';
 import { TEST_TIME_UP, ATTEMPT_FINISHED } from '@/lib/premium';
+import { celebrate, withCourse } from '@/lib/celebrate';
 
 type AnswerState = {
     selectedId: string;
@@ -23,6 +24,8 @@ export default function QuizPage() {
     const lessonId = params?.id as string;
     const quizId = params?.quizId as string;
     const resumeAttemptId = searchParams?.get('attempt');
+    const courseId = searchParams?.get('course');
+    const lessonHref = withCourse(`/lessons/${lessonId}`, courseId);
 
     const [phase, setPhase] = useState<Phase>('loading');
     const [error, setError] = useState('');
@@ -69,6 +72,13 @@ export default function QuizPage() {
     useEffect(() => {
         startQuiz();
     }, [startQuiz]);
+
+    // Same celebration as finishing a lesson (only when the test was just completed)
+    useEffect(() => {
+        if (phase === 'result' && result && !resumeAttemptId) {
+            celebrate();
+        }
+    }, [phase, result, resumeAttemptId]);
 
     const finishAttempt = useCallback(async (id: string) => {
         if (finishingRef.current) return;
@@ -145,7 +155,7 @@ export default function QuizPage() {
 
     const handleRetry = () => {
         if (resumeAttemptId) {
-            router.replace(`/lessons/${lessonId}/quiz/${quizId}`);
+            router.replace(withCourse(`/lessons/${lessonId}/quiz/${quizId}`, courseId));
             return;
         }
         startQuiz();
@@ -172,7 +182,7 @@ export default function QuizPage() {
             <div className="max-w-xl mx-auto py-20 text-center px-6">
                 <p className="text-primary font-black mb-2 uppercase tracking-widest text-sm">Xatolik</p>
                 <p className="text-gray-500 font-medium mb-8">{error}</p>
-                <Link href={`/lessons/${lessonId}`} className="text-primary font-bold">
+                <Link href={lessonHref} className="text-primary font-bold">
                     Darsga qaytish
                 </Link>
             </div>
@@ -180,33 +190,62 @@ export default function QuizPage() {
     }
 
     if (phase === 'result' && result) {
+        const percent = Math.max(0, Math.min(100, Math.round(result.percent)));
+        const R = 70;
+        const C = 2 * Math.PI * R;
         return (
-            <div className="max-w-xl mx-auto py-16 px-6">
-                <div className="bg-white rounded-[2.5rem] border border-gray-100 p-10 text-center shadow-soft">
-                    <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle2 size={32} />
+            <div className="max-w-md mx-auto py-10 px-6">
+                <button
+                    onClick={() => router.push(lessonHref)}
+                    className="inline-flex items-center gap-2 text-gray-500 font-bold hover:text-primary mb-6"
+                >
+                    <ArrowLeft size={18} /> Test natijasi
+                </button>
+
+                <div className="bg-white rounded-3xl border border-gray-100 p-8 text-center shadow-premium">
+                    <div className="relative w-52 h-52 mx-auto mb-6">
+                        <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90">
+                            <defs>
+                                <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stopColor="#31D0FC" />
+                                    <stop offset="100%" stopColor="#0A63E8" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="80" cy="80" r={R} fill="none" stroke="#E2E8F0" strokeWidth="14" />
+                            <circle
+                                cx="80" cy="80" r={R} fill="none" stroke="url(#ring)" strokeWidth="14" strokeLinecap="round"
+                                strokeDasharray={C}
+                                strokeDashoffset={C - (C * percent) / 100}
+                                className="transition-all duration-1000 ease-out"
+                            />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <span className="text-5xl font-black text-slate-900 tracking-tight">{percent}%</span>
+                            <span className="text-xs font-semibold text-gray-400 mt-1">to‘g‘ri</span>
+                        </div>
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Test yakuni</p>
-                    <h1 className="text-5xl font-black text-gray-900 mb-2">{Math.round(result.percent)}%</h1>
-                    <p className="text-gray-500 font-medium mb-10">
+
+                    <h1 className="text-lg font-black text-slate-900">Test yakunlandi</h1>
+                    <p className="text-gray-400 font-medium text-sm mt-1 mb-8">
                         {result.correct_count} / {result.total_count} to‘g‘ri javob
                     </p>
+
                     <div className="space-y-3">
                         {result.next_lesson_id && (
                             <Link
-                                href={`/lessons/${result.next_lesson_id}`}
-                                className="block w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs"
+                                href={withCourse(`/lessons/${result.next_lesson_id}`, courseId)}
+                                className="block w-full py-4 bg-brand-gradient text-white rounded-2xl font-black text-sm shadow-lg shadow-primary/20 hover:opacity-95 active:scale-[0.98] transition-all"
                             >
                                 Keyingi mavzuga o‘tish
                             </Link>
                         )}
                         <button
                             onClick={handleRetry}
-                            className="w-full py-4 bg-slate-50 text-gray-700 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2"
+                            className="w-full py-4 bg-white border border-gray-200 text-slate-800 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:border-primary/40 hover:text-primary active:scale-[0.98] transition-all"
                         >
                             <RefreshCw size={16} /> Testni qayta ishlash
                         </button>
-                        <Link href={`/lessons/${lessonId}`} className="block w-full py-3 text-gray-400 font-bold text-sm">
+                        <Link href={lessonHref} className="block w-full py-2 text-gray-400 font-bold text-sm hover:text-primary">
                             Darsga qaytish
                         </Link>
                     </div>
@@ -218,75 +257,97 @@ export default function QuizPage() {
     if (!quiz || !currentQuestion) return null;
 
     const answer = answers[currentQuestion.id];
+    const total = quiz.questions.length;
+    const progress = Math.round(((index + (answer ? 1 : 0)) / total) * 100);
+    const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-    const optionClass = (optionId: string) => {
-        if (!answer) {
-            return 'border-gray-100 bg-white hover:border-primary/30';
-        }
-        if (optionId === answer.correctOptionId) {
-            return 'border-emerald-200 bg-emerald-50 text-emerald-800';
-        }
-        if (optionId === answer.selectedId && !answer.isCorrect) {
-            return 'border-red-200 bg-red-50 text-red-800';
-        }
-        return 'border-gray-50 bg-slate-50 text-gray-400';
+    const optionState = (optionId: string): 'idle' | 'correct' | 'wrong' | 'dim' => {
+        if (!answer) return 'idle';
+        if (optionId === answer.correctOptionId) return 'correct';
+        if (optionId === answer.selectedId && !answer.isCorrect) return 'wrong';
+        return 'dim';
     };
 
-    return (
-        <div className="max-w-2xl mx-auto px-6 py-10">
-            <button
-                onClick={() => router.push(`/lessons/${lessonId}`)}
-                className="inline-flex items-center gap-2 text-gray-400 font-bold hover:text-primary mb-8"
-            >
-                <ArrowLeft size={18} /> Darsga qaytish
-            </button>
+    const optionClass = {
+        idle: 'border-gray-100 bg-white hover:border-primary/40 hover:shadow-soft text-slate-800',
+        correct: 'border-emerald-400 bg-emerald-50 text-emerald-700',
+        wrong: 'border-red-300 bg-red-50 text-red-600',
+        dim: 'border-gray-100 bg-white text-gray-400',
+    } as const;
 
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">
-                        Savol {index + 1} / {quiz.questions.length}
-                    </p>
-                    <h1 className="text-2xl font-black text-gray-900">{quiz.title}</h1>
-                </div>
+    const badgeClass = {
+        idle: 'bg-slate-100 text-slate-500',
+        correct: 'bg-emerald-500 text-white',
+        wrong: 'bg-red-500 text-white',
+        dim: 'bg-slate-100 text-slate-300',
+    } as const;
+
+    return (
+        <div className="max-w-xl mx-auto px-6 py-8">
+            <div className="flex items-center justify-between mb-5">
+                <button
+                    onClick={() => router.push(lessonHref)}
+                    className="inline-flex items-center gap-2 text-slate-900 font-black hover:text-primary"
+                >
+                    <ArrowLeft size={18} /> Test
+                </button>
                 {timerLabel && (
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-50 text-gray-700 font-black">
-                        <Clock size={16} /> {timerLabel}
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-gray-100 text-slate-700 text-sm font-black">
+                        <Clock size={14} className="text-primary" /> {timerLabel}
                     </div>
                 )}
             </div>
 
-            <div className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-soft">
+            <div className="flex items-center gap-3 mb-6">
+                <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                        className="h-full rounded-full bg-brand-progress transition-all duration-500"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+                <span className="text-xs font-bold text-gray-400 tabular-nums">{index + 1} / {total}</span>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-soft mb-4">
                 {currentQuestion.image_url && (
                     <img
                         src={currentQuestion.image_url}
                         alt=""
-                        className="w-full rounded-2xl mb-6 object-cover max-h-64"
+                        className="w-full rounded-xl mb-4 object-cover max-h-64"
                     />
                 )}
-                <h2 className="text-xl font-black text-gray-900 mb-8 leading-snug">{currentQuestion.text}</h2>
+                <h2 className="text-base font-black text-slate-900 leading-snug">{currentQuestion.text}</h2>
+            </div>
 
-                <div className="space-y-3">
-                    {currentQuestion.options.map((opt) => (
+            <div className="space-y-2.5">
+                {currentQuestion.options.map((opt, i) => {
+                    const state = optionState(opt.id);
+                    return (
                         <button
                             key={opt.id}
                             disabled={!!answer || submitting}
                             onClick={() => handleSelect(opt.id)}
-                            className={`w-full text-left px-5 py-4 rounded-2xl border-2 font-bold transition-all ${optionClass(opt.id)}`}
+                            className={`w-full flex items-center gap-3 text-left px-4 py-3.5 rounded-xl border-2 font-bold text-sm transition-all ${optionClass[state]}`}
                         >
-                            {opt.text}
+                            <span className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-xs font-black ${badgeClass[state]}`}>
+                                {state === 'correct' ? <Check size={14} strokeWidth={3} /> : state === 'wrong' ? <X size={14} strokeWidth={3} /> : LETTERS[i]}
+                            </span>
+                            <span className="flex-1">{opt.text}</span>
+                            {state === 'correct' && <Check size={18} className="text-emerald-500" />}
+                            {state === 'wrong' && <X size={18} className="text-red-500" />}
                         </button>
-                    ))}
-                </div>
-
-                {answer && (
-                    <button
-                        onClick={handleNext}
-                        className="mt-8 w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs"
-                    >
-                        {index < quiz.questions.length - 1 ? 'Keyingi savol' : 'Yakunlash'}
-                    </button>
-                )}
+                    );
+                })}
             </div>
+
+            {answer && (
+                <button
+                    onClick={handleNext}
+                    className="mt-6 w-full py-4 bg-brand-gradient text-white rounded-2xl font-black text-sm shadow-lg shadow-primary/20 hover:opacity-95 active:scale-[0.98] transition-all"
+                >
+                    {index < total - 1 ? 'Keyingi savol' : 'Yakunlash'}
+                </button>
+            )}
         </div>
     );
 }

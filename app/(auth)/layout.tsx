@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import BrandWordmark from '@/components/common/BrandWordmark';
+import { BRAND_NAME } from '@/lib/brand';
 
 export default function AuthLayout({
     children,
@@ -15,8 +17,11 @@ export default function AuthLayout({
 
             <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
                 <div className="flex justify-center mb-8">
-                    <div className="w-20 h-20 rounded-2xl bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center p-4">
-                        <img src="/assets/logo.png" alt="Logo" className="w-full h-full object-contain" />
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="w-20 h-20 rounded-3xl bg-white shadow-xl shadow-primary/10 border border-slate-100 flex items-center justify-center p-4">
+                            <img src="/assets/logo.png" alt={BRAND_NAME} className="w-full h-full object-contain" />
+                        </div>
+                        <BrandWordmark className="text-3xl" />
                     </div>
                 </div>
             </div>

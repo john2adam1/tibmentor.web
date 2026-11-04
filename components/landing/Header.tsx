@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import BrandWordmark from '@/components/common/BrandWordmark';
+import { BRAND_NAME } from '@/lib/brand';
 
 export default function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -17,13 +19,11 @@ export default function Header() {
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="h-20 flex items-center justify-between">
                         <Link href="/" className="flex items-center gap-3 group">
-                            <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
-                                <img src="/assets/logo.png" alt="Logo" className="w-14 h-14 object-contain" />
+                            <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-lg shadow-primary/10 group-hover:scale-105 transition-transform duration-300">
+                                <img src="/assets/logo.png" alt={BRAND_NAME} className="w-10 h-10 object-contain" />
                             </div>
                             <div className="flex flex-col">
-                                <span className="font-black text-xl tracking-tight text-slate-900 leading-none group-hover:text-primary transition-colors">
-                                    iMed Team
-                                </span>
+                                <BrandWordmark className="text-2xl leading-none" />
                                 <span className="text-[10px] uppercase tracking-widest font-bold text-primary mt-1">
                                     Professional
                                 </span>

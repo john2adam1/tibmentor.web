@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss'
+import defaultTheme from 'tailwindcss/defaultTheme'
 
 const config: Config = {
   darkMode: ["class"],
@@ -16,6 +17,9 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-sans)', ...defaultTheme.fontFamily.sans],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -26,16 +30,30 @@ const config: Config = {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
           tint: "hsl(var(--primary-tint))",
-          50: 'hsl(350, 75%, 95%)',
-          100: 'hsl(350, 75%, 85%)',
-          200: 'hsl(350, 75%, 75%)',
-          300: 'hsl(350, 75%, 65%)',
-          400: 'hsl(350, 75%, 55%)',
-          500: 'hsl(350, 75%, 45%)',
-          600: 'hsl(350, 75%, 38%)',
-          700: 'hsl(350, 75%, 32%)',
-          800: 'hsl(350, 75%, 26%)',
-          900: 'hsl(350, 75%, 20%)'
+          50: '#EAF2FE',
+          100: '#D3E4FD',
+          200: '#A8C9FB',
+          300: '#7CAEF8',
+          400: '#3F89F0',
+          500: '#0A63E8',
+          600: '#0A55CC',
+          700: '#093E9A',
+          800: '#0B2F7A',
+          900: '#0B1D4F'
+        },
+        // TibMentor logo palette (roadmap T-03)
+        brand: {
+          ink: '#05173A',
+          navy: '#0B1D4F',
+          blue: '#1E56D6',
+          accent: '#0A63E8',
+          violet: '#6A4CF0',
+          cyan: '#31D0FC'
+        },
+        slate: {
+          800: '#0B1D4F',
+          900: '#05173A',
+          950: '#030F28'
         },
         dark: {
           900: '#0b0b10',
@@ -74,10 +92,16 @@ const config: Config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      backgroundImage: {
+        'brand-hero': 'linear-gradient(135deg, #0B1D4F 0%, #6A4CF0 60%, #1E56D6 100%)',
+        'brand-progress': 'linear-gradient(90deg, #0A63E8 0%, #31D0FC 100%)',
+        'brand-gradient': 'linear-gradient(135deg, #0B1D4F 0%, #1E56D6 60%, #0A63E8 100%)',
+      },
       boxShadow: {
         card: '0 10px 25px rgba(0, 0, 0, 0.04)',
         soft: '0 4px 12px rgba(0,0,0,0.03)',
         header: '0 2px 10px rgba(0, 0, 0, 0.02)',
+        premium: '0 20px 40px -12px rgba(10, 99, 232, 0.16)',
       },
       keyframes: {
         marquee: {

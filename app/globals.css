@@ -4,13 +4,13 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    --background: 220 33% 96%;
+    --foreground: 220 84% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 220 84% 12%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 350 75% 45%;
+    --primary: 216 92% 47%;
     --primary-foreground: 0 0% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -22,11 +22,11 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 350 75% 45%;
+    --ring: 216 92% 47%;
     --radius: 0.75rem;
 
     /* Custom Tokens */
-    --primary-tint: 350 100% 98%;
+    --primary-tint: 216 91% 96%;
   }
 }
 
@@ -81,7 +81,7 @@ a {
   bottom: -4px;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, #f43f5e, #fb7185);
+  background: linear-gradient(90deg, #0A63E8, #31D0FC);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.25s;
@@ -92,7 +92,7 @@ a {
 }
 
 .glow {
-  box-shadow: 0 0 0 8px rgba(244, 63, 94, .08);
+  box-shadow: 0 0 0 8px rgba(10, 99, 232, .10);
 }
 
 .marquee {

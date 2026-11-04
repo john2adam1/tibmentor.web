@@ -119,7 +119,7 @@ export default function ConfirmPage() {
             <div className="w-full max-w-md bg-white rounded-[3.5rem] p-12 shadow-2xl shadow-slate-200 border border-white relative z-10">
                 <div className="flex justify-center mb-10">
                     <div className="w-20 h-20 rounded-2xl bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center p-4">
-                        <img src="/assets/logo.png" alt="Logo" className="w-full h-full object-contain" />
+                        <img src="/assets/logo.png" alt="TibMentor" className="w-full h-full object-contain" />
                     </div>
                 </div>
 

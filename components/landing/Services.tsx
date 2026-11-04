@@ -38,12 +38,12 @@ export default function Services() {
                         <div className="absolute -top-10 -left-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl -z-10"></div>
 
                         <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                            iMed Tem haqida!
+                            TibMentor haqida!
                         </h2>
 
                         <div className="space-y-5">
                             <p className="text-[15px] font-bold text-slate-800 leading-relaxed border-l-4 border-primary pl-4">
-                                “iMed Team” tibbiy platformasi 2021-yildan buyon o‘z faoliyatlarini olib bormoqda. Shu kungacha biz 10000 dan ziyod bo‘lgan talaba va shifokorlarni o‘qitib keldik. Bizda o’z ustida ishlaydigan shifokor va talabalar doimo yangi bilimlar olib kelishmoqda! Bizning talabalar turli xil davlat va xususiy shifoxonalarda malakali mutaxassis bo‘lib ishlab kelishmoqda.
+                                “TibMentor” tibbiy platformasi 2021-yildan buyon o‘z faoliyatlarini olib bormoqda. Shu kungacha biz 10000 dan ziyod bo‘lgan talaba va shifokorlarni o‘qitib keldik. Bizda o’z ustida ishlaydigan shifokor va talabalar doimo yangi bilimlar olib kelishmoqda! Bizning talabalar turli xil davlat va xususiy shifoxonalarda malakali mutaxassis bo‘lib ishlab kelishmoqda.
                             </p>
                             <p className="text-[15px] font-medium text-slate-600 leading-relaxed pl-5">
                                 Shuningdek, ularning turli xalqaro hamda milliy olimpiadalarda faxrli o‘rinlarni egallab kelayotganlari diqqatga sazovordir. Bizning kurslarimizdagi barcha manbalar xalqaro darajadagi ma’lumotlar asosiga tuzilgan va O’zbekiston muhitiga moslashtirilgan. Kurs davomida nafaqat bilim, balki ustoz shifokorlar tomonidan amaliy tayyor instrumentlar va shablonlarni qo‘lga kiritasiz.

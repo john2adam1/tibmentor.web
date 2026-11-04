@@ -6,13 +6,33 @@ import {
     bannerService,
     notificationService,
     activityService,
-    ratingService
+    ratingService,
+    subjectService
 } from '@/services';
 import { useRouter } from 'next/navigation';
-import { Bell, Sun, Trophy, BookOpen, Clock, ChevronRight, Play } from 'lucide-react';
+import { ChevronRight, Crown, Lock } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import BannerSlider from '@/components/student/BannerSlider';
-import { cn } from '@/lib/utils';
+import CourseRow, { daysLeft } from '@/components/student/CourseRow';
+import { formatUntil, packageLabel } from '@/lib/premium';
+import Link from 'next/link';
+
+const SECTION_STYLE: Record<string, { emoji: string; tile: string }> = {
+    fundamental: { emoji: '🫀', tile: 'bg-rose-50' },
+    preclinical: { emoji: '🔬', tile: 'bg-blue-50' },
+    clinical: { emoji: '🩺', tile: 'bg-sky-50' },
+    free: { emoji: '🔥', tile: 'bg-orange-50' },
+    default: { emoji: '📚', tile: 'bg-indigo-50' },
+};
+
+function sectionStyle(name: string, pkg?: string | null) {
+    if (pkg && SECTION_STYLE[pkg]) return SECTION_STYLE[pkg];
+    const n = (name || '').toLowerCase();
+    if (n.includes('fundamental')) return SECTION_STYLE.fundamental;
+    if (n.includes('preklinik')) return SECTION_STYLE.preclinical;
+    if (n.includes('klinik')) return SECTION_STYLE.clinical;
+    return SECTION_STYLE.default;
+}
 
 export default function AppHome() {
     const { user: authUser, isLoading: authLoading, isAuthenticated } = useAuth();
@@ -20,6 +40,7 @@ export default function AppHome() {
     const [banners, setBanners] = useState<{ banners: any[], count: number }>({ banners: [], count: 0 });
     const [activity, setActivity] = useState<any>(null);
     const [rating, setRating] = useState<any>(null);
+    const [subjects, setSubjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
@@ -47,7 +68,8 @@ export default function AppHome() {
                 fetchData(() => courseService.getUserCourses(), setUserCourses, 'user courses'),
                 fetchData(() => bannerService.getBanners(), setBanners, 'banners'),
                 fetchData(() => activityService.getStats({ type: 'year' }), setActivity, 'activity'),
-                fetchData(() => ratingService.getRating(), setRating, 'rating')
+                fetchData(() => ratingService.getRating(), setRating, 'rating'),
+                fetchData(() => subjectService.getAll(), (d) => setSubjects(d.subjects || []), 'subjects')
             ]);
 
             setLoading(false);
@@ -83,162 +105,152 @@ export default function AppHome() {
         );
     }
 
+    const activePackages = (authUser?.packages || []).filter((p) => p.is_active);
+    const isUstoz = !!authUser?.is_ustoz;
+    const hasPremium = isUstoz || activePackages.length > 0;
+    const firstName = authUser?.name?.split(' ')[0];
+
+    const sections = [
+        ...[...subjects]
+            .sort((x, y) => (x.order_num ?? 0) - (y.order_num ?? 0))
+            .map((s) => {
+                const pkg = s.package || null;
+                const active = isUstoz || (pkg ? activePackages.some((p) => p.package === pkg) : false);
+                const st = sectionStyle(s.name, pkg);
+                return {
+                    key: s.id,
+                    name: s.name,
+                    desc: s.description || (s.total_courses !== undefined ? `${s.total_courses} ta kurs` : ''),
+                    href: `/courses?subject=${s.id}`,
+                    st,
+                    status: pkg ? (active ? 'active' : 'locked') : null,
+                };
+            }),
+        { key: 'free', name: 'Bepul kurslar', desc: 'Bepul namunaviy kurslar', href: '/courses?subject=free', st: SECTION_STYLE.free, status: 'open' as const },
+    ];
+
     return (
-        <div className="space-y-12">
-            {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-                <div className="animate-in fade-in slide-in-from-left duration-700">
-                    <h1 className="text-4xl font-black text-gray-900 tracking-tight">
-                        {authUser?.name ? `Assalomu alaykum, ${authUser.name}!` : 'Xush kelibsiz!'}
-                    </h1>
-                    <p className="text-lg text-gray-500 mt-2 font-medium italic">Bugun yangi bilimlar olish uchun ajoyib kun!</p>
-                </div>
-                <div className="flex items-center gap-4">
-                </div>
+        <div className="space-y-6 lg:space-y-8">
+            {/* Greeting (tablet / laptop — phones show the app header) */}
+            <div className="hidden md:block">
+                <h1 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">
+                    {firstName ? `Assalomu alaykum, ${firstName}!` : 'Xush kelibsiz!'}
+                </h1>
+                <p className="text-slate-500 mt-1">Bugun yangi bilimlar olish uchun ajoyib kun.</p>
             </div>
 
-            {/* Banners Section - Prominent & Visual */}
-            {(banners?.banners && banners.banners.length > 0) ? (
-                <div className="animate-in fade-in zoom-in duration-700">
+            {/* Banners */}
+            {banners?.banners && banners.banners.length > 0 && (
+                <div className="rounded-3xl overflow-hidden">
                     <BannerSlider banners={banners.banners} />
                 </div>
-            ) : (
-                <div className="hidden">No banners available in the data</div>
             )}
 
-            {/* Statistics Dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-soft hover:shadow-premium transition-all duration-500 group">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-inner shadow-primary/5">
-                            <BookOpen size={24} />
-                        </div>
-                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em]">O'qilayotgan kurslar</p>
-                    </div>
-                    <div className="flex items-end justify-between">
-                        <p className="text-5xl font-black text-gray-900 tracking-tighter">{stats.enrolled}</p>
-                        <p className="text-xs font-bold text-gray-400 mb-2">ta kurs</p>
-                    </div>
-                </div>
-
-                <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-soft hover:shadow-premium transition-all duration-500 group">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform shadow-inner shadow-emerald-500/5">
-                            <Clock size={24} />
-                        </div>
-                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em]">Tugatilgan darslar</p>
-                    </div>
-                    <div className="flex items-end justify-between">
-                        <p className="text-5xl font-black text-gray-900 tracking-tighter">{stats.completed}</p>
-                        <p className="text-xs font-bold text-gray-400 mb-2">ta dars</p>
-                    </div>
-                </div>
-
-                <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-soft hover:shadow-premium transition-all duration-500 group">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 bg-yellow-50 rounded-2xl flex items-center justify-center text-yellow-500 group-hover:scale-110 transition-transform shadow-inner shadow-yellow-500/5">
-                            <Trophy size={24} />
-                        </div>
-                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em]">Platforma reytingi</p>
-                    </div>
-                    <div className="flex items-end justify-between">
-                        <div className="flex items-center gap-2">
-                            <p className="text-4xl font-black text-gray-900 tracking-tighter">
-                                {formatActivity(rating?.me?.activity || 0)}
+            {/* Premium status + quick stats: one balanced row */}
+            <div className={`grid gap-4 ${hasPremium ? 'lg:grid-cols-2' : ''}`}>
+                {hasPremium && (
+                    <Link
+                        href="/premium"
+                        className="flex items-center gap-3 rounded-3xl bg-brand-hero text-white p-5 shadow-premium"
+                    >
+                        <Crown size={22} className="shrink-0" />
+                        <div className="min-w-0">
+                            <p className="font-black">{isUstoz ? 'Ustoz — doimiy kirish' : 'Premium faol'}</p>
+                            <p className="text-sm text-white/80">
+                                {isUstoz
+                                    ? 'Barcha kurslar ochiq'
+                                    : activePackages
+                                          .map((p) => `${packageLabel(p.package)}${p.until ? ` · ${formatUntil(p.until)} gacha` : ''}`)
+                                          .join(' | ')}
                             </p>
                         </div>
-                        <p className="text-xs font-bold text-gray-400 mb-2">o'qish vaqti</p>
-                    </div>
+                    </Link>
+                )}
+
+                <div className="grid grid-cols-3 gap-3">
+                    {[
+                        { label: 'Kurslar', value: stats.enrolled },
+                        { label: 'Darslar', value: stats.completed },
+                        { label: 'O‘qish vaqti', value: formatActivity(rating?.me?.activity || 0) },
+                    ].map((s) => (
+                        <div key={s.label} className="bg-white rounded-2xl border border-slate-100 shadow-soft px-2 py-3 text-center flex flex-col justify-center">
+                            <p className="text-base sm:text-lg font-black text-slate-900 tabular-nums">{s.value}</p>
+                            <p className="text-[11px] text-slate-500">{s.label}</p>
+                        </div>
+                    ))}
                 </div>
             </div>
 
-            {/* My Courses Section */}
-            <div className="space-y-8">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-4">
-                        <span className="w-2 h-8 bg-primary rounded-full"></span>
-                        Mening kurslarim
-                    </h2>
-                    <button
-                        onClick={() => router.push('/courses')}
-                        className="group flex items-center gap-2 text-sm font-black text-primary hover:gap-3 transition-all uppercase tracking-widest"
-                    >
-                        Barchasini ko'rish <ChevronRight size={18} />
-                    </button>
+            {/* Bo‘limlar: phone = one card with dividers, tablet/laptop = grid of cards */}
+            <section>
+                <h2 className="text-lg font-black text-slate-900 mb-3 px-1">Bo‘limlar</h2>
+                <div className="max-md:bg-white max-md:rounded-3xl max-md:border max-md:border-slate-100 max-md:shadow-soft max-md:divide-y max-md:divide-slate-100 max-md:overflow-hidden md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-3">
+                    {sections.map((item) => (
+                        <Link
+                            key={item.key}
+                            href={item.href}
+                            className="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 active:bg-slate-100 transition-colors group md:bg-white md:rounded-2xl md:border md:border-slate-100 md:shadow-soft md:hover:border-primary/30"
+                        >
+                            <span className={`w-11 h-11 rounded-2xl ${item.st.tile} flex items-center justify-center text-xl shrink-0`}>
+                                {item.st.emoji}
+                            </span>
+                            <span className="flex-1 min-w-0">
+                                <span className="block font-bold text-slate-900 leading-snug truncate">{item.name}</span>
+                                {item.desc && <span className="block text-sm text-slate-500 truncate">{item.desc}</span>}
+                            </span>
+                            {item.status === 'active' && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold shrink-0">
+                                    <Crown size={11} /> Faol
+                                </span>
+                            )}
+                            {item.status === 'locked' && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-[11px] font-bold shrink-0">
+                                    <Lock size={11} /> Yopiq
+                                </span>
+                            )}
+                            {item.status === 'open' && (
+                                <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[11px] font-bold shrink-0">Ochiq</span>
+                            )}
+                            <ChevronRight size={16} className="text-slate-300 group-hover:text-primary transition-colors shrink-0" />
+                        </Link>
+                    ))}
                 </div>
+            </section>
 
+            {/* My courses */}
+            <section>
+                <div className="flex items-center justify-between mb-3 px-1">
+                    <h2 className="text-lg font-black text-slate-900">Mening kurslarim</h2>
+                    <Link href="/courses?tab=my" className="text-sm font-bold text-primary">
+                        Barchasi
+                    </Link>
+                </div>
                 {userCourses?.user_courses?.length > 0 ? (
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {userCourses.user_courses.slice(0, 4).map((course: any) => (
-                            <div
-                                key={course.id}
-                                className="group bg-white border border-gray-100 rounded-[2.5rem] p-6 shadow-soft hover:shadow-premium transition-all duration-500 cursor-pointer hover:-translate-y-2 flex flex-col"
-                                onClick={() => router.push(`/courses/${course.course_id}`)}
-                            >
-                                <div className="aspect-[16/10] bg-slate-50 rounded-3xl mb-6 overflow-hidden relative ring-1 ring-gray-100">
-                                    {course.course_image_url ? (
-                                        <img
-                                            src={course.course_image_url}
-                                            alt={course.course_name}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x250/800000/FFFFFF?text=KURS';
-                                            }}
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-200">
-                                            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-card group-hover:scale-110 transition-transform duration-500">
-                                                <Play size={32} className="text-primary/20" fill="currentColor" />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <h3 className="text-lg font-black text-gray-900 mb-3 line-clamp-1 group-hover:text-primary transition-colors tracking-tight">
-                                    {course.course_name}
-                                </h3>
-
-                                <div className="space-y-4 mt-auto">
-                                    <div className="w-full bg-slate-100 rounded-full h-5 overflow-hidden shadow-inner relative">
-                                        <div
-                                            className="bg-primary h-full rounded-full transition-all duration-1000 shadow-lg shadow-primary/20"
-                                            style={{ width: `${course.percentage || 0}%` }}
-                                        />
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <span className={cn(
-                                                "text-[10px] font-black uppercase tracking-widest",
-                                                (course.percentage || 0) > 55 ? "text-white" : "text-primary"
-                                            )}>
-                                                {Math.round(course.percentage || 0)}% TUGATILDI
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                        <span>{course.completed_lessons || 0} DARS</span>
-                                        <span>{course.total_lessons || 0} JAMI</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
+                        {userCourses.user_courses.slice(0, 6).map((course: any) => {
+                            const left = daysLeft(course.ended_at);
+                            return (
+                                <CourseRow
+                                    key={course.id}
+                                    href={`/courses/${course.course_id}`}
+                                    title={course.course_name}
+                                    imageUrl={course.course_image_url}
+                                    subtitle={`${course.total_lessons || 0} ta dars${left !== null ? ` · ${left} kun qoldi` : ''}`}
+                                    percentage={course.percentage || 0}
+                                />
+                            );
+                        })}
                     </div>
                 ) : (
-                    <div className="py-32 flex flex-col items-center justify-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100 text-center animate-in fade-in duration-1000">
-                        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-8 shadow-card text-4xl grayscale opacity-30">
-                            📚
-                        </div>
-                        <h3 className="text-2xl font-black text-gray-900 mb-3">Kurslar topilmadi</h3>
-                        <p className="text-gray-400 font-medium max-w-sm mb-10 leading-relaxed px-6">
-                            Siz hali hech qaysi kursga a'zo bo'lmagansiz. Hozirgi kurslarni ko'rib chiqing va o'rganishni boshlang!
-                        </p>
-                        <button
-                            onClick={() => router.push('/courses')}
-                            className="px-10 py-5 bg-primary text-white rounded-2xl font-black shadow-lg shadow-primary/20 hover:bg-primary-600 transition-all active:scale-[0.98] uppercase tracking-widest text-sm"
-                        >
+                    <div className="bg-white rounded-3xl border border-dashed border-slate-200 p-8 text-center">
+                        <p className="font-bold text-slate-900 mb-1">Kurslar topilmadi</p>
+                        <p className="text-sm text-slate-500 mb-4">Siz hali hech qaysi kursga a'zo bo'lmagansiz.</p>
+                        <Link href="/courses" className="inline-flex px-6 py-3 bg-brand-gradient text-white rounded-2xl font-bold text-sm shadow-soft">
                             Kurslarni ko'rish
-                        </button>
+                        </Link>
                     </div>
                 )}
-            </div>
+            </section>
         </div>
     );
 }

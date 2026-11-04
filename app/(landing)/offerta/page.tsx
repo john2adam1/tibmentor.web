@@ -25,8 +25,8 @@ export default function OffertaPage() {
                     <div className="prose prose-slate max-w-none space-y-8 text-gray-600 font-medium leading-relaxed">
                         <section>
                             <p>
-                                <strong>Operator:</strong> iMed Team kompaniyasi (keyingi o‘rinlarda — “Operator”)<br />
-                                <strong>Ilova nomi:</strong> iMed Team (Android va iOS mobil ilovasi)
+                                <strong>Operator:</strong> TibMentor kompaniyasi (keyingi o‘rinlarda — “Operator”)<br />
+                                <strong>Ilova nomi:</strong> TibMentor (Android va iOS mobil ilovasi)
                             </p>
                             <p>
                                 Ushbu hujjat O‘zbekiston Respublikasi Fuqarolik kodeksiga muvofiq ommaviy oferta hisoblanadi. Ilovada ro‘yxatdan o‘tish yoki undan foydalanishni boshlash orqali Foydalanuvchi ushbu shartlarni to‘liq qabul qilgan hisoblanadi.
@@ -35,7 +35,7 @@ export default function OffertaPage() {
 
                         <section>
                             <h2 className="text-xl font-black text-gray-900 mb-4">1. Shartnoma predmeti</h2>
-                            <p>1.1. Operator Foydalanuvchiga iMed Team mobil ilovasi orqali tibbiyot sohasiga oid ta’limiy materiallardan foydalanish imkoniyatini beradi.</p>
+                            <p>1.1. Operator Foydalanuvchiga TibMentor mobil ilovasi orqali tibbiyot sohasiga oid ta’limiy materiallardan foydalanish imkoniyatini beradi.</p>
                             <p>1.2. Ilovada mavjud:</p>
                             <ul className="list-disc pl-6 space-y-2">
                                 <li>videodarslar, podcast</li>
@@ -90,7 +90,7 @@ export default function OffertaPage() {
 
                         <section>
                             <h2 className="text-xl font-black text-gray-900 mb-4">7. Intellektual mulk</h2>
-                            <p>7.1. Ilovadagi barcha materiallar iMed Team kompaniyasining intellektual mulki hisoblanadi.</p>
+                            <p>7.1. Ilovadagi barcha materiallar TibMentor kompaniyasining intellektual mulki hisoblanadi.</p>
                             <p>7.2. Quyidagilar qat’iyan taqiqlanadi:</p>
                             <ul className="list-disc pl-6 space-y-2">
                                 <li>Video yoki testlarni ko‘chirib tarqatish</li>

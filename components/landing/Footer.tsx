@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import BrandWordmark from '@/components/common/BrandWordmark';
+import { BRAND_NAME } from '@/lib/brand';
 
 export default function Footer() {
     return (
@@ -7,12 +9,10 @@ export default function Footer() {
                 <div className="grid md:grid-cols-4 gap-12">
                     <div className="col-span-2">
                         <Link href="/" className="flex items-center gap-3 mb-8 group">
-                            <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                                <img src="/assets/logo.png" alt="Logo" className="w-8 h-8 brightness-0 invert" />
+                            <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-lg shadow-primary/10">
+                                <img src="/assets/logo.png" alt={BRAND_NAME} className="w-8 h-8 object-contain" />
                             </div>
-                            <span className="font-black text-2xl tracking-tight text-slate-900 group-hover:text-primary transition-colors">
-                                iMed Team
-                            </span>
+                            <BrandWordmark className="text-2xl" />
                         </Link>
                         <p className="text-slate-500 font-medium text-lg max-w-sm leading-relaxed">
                             O‘zbekiston tibbiyotini yangi darajaga olib chiqish — bizning eng ustuvor vazifamiz!
@@ -48,7 +48,7 @@ export default function Footer() {
 
                 <div className="border-t border-slate-50 pt-10 mt-10">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-sm font-bold text-slate-400">
-                        <p>© {new Date().getFullYear()} iMed Team. Barcha huquqlar himoyalangan.</p>
+                        <p>© {new Date().getFullYear()} {BRAND_NAME}. Barcha huquqlar himoyalangan.</p>
                         <div className="flex items-center gap-8">
                             <a href="#" className="hover:text-primary transition-colors">Maxfiylik siyosati</a>
                             <a href="#" className="hover:text-primary transition-colors">Foydalanish shartlari</a>

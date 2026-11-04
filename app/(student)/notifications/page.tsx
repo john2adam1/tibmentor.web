@@ -70,10 +70,10 @@ export default function NotificationsPage() {
         </div>
 
         {/* Filter Selector */}
-        <div className="p-1.5 bg-slate-100 rounded-[2rem] flex gap-1 shadow-inner h-fit border border-gray-100 w-full sm:w-80">
+        <div className="p-1.5 bg-slate-100 rounded-2xl flex gap-1 shadow-inner h-fit border border-gray-100 w-full sm:w-80">
           <button
             onClick={() => setFilter('all')}
-            className={`flex-1 px-4 py-2.5 rounded-[1.5rem] text-sm font-black transition-all duration-300 tracking-tight
+            className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-black transition-all duration-300 tracking-tight
                       ${filter === 'all'
                 ? 'bg-white text-gray-900 shadow-md'
                 : 'text-gray-400 hover:text-gray-600'
@@ -83,7 +83,7 @@ export default function NotificationsPage() {
           </button>
           <button
             onClick={() => setFilter('unread')}
-            className={`flex-1 px-4 py-2.5 rounded-[1.5rem] text-sm font-black transition-all duration-300 tracking-tight
+            className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-black transition-all duration-300 tracking-tight
                       ${filter === 'unread'
                 ? 'bg-white text-gray-900 shadow-md'
                 : 'text-gray-400 hover:text-gray-600'
@@ -95,8 +95,8 @@ export default function NotificationsPage() {
       </div>
 
       {notifications.length === 0 ? (
-        <div className="bg-slate-50 rounded-[3rem] border-2 border-dashed border-gray-100 p-24 text-center">
-          <div className="w-20 h-20 bg-white rounded-[2rem] shadow-sm flex items-center justify-center mx-auto mb-8">
+        <div className="bg-slate-50 rounded-3xl border-2 border-dashed border-gray-100 p-24 text-center">
+          <div className="w-20 h-20 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-8">
             <Inbox className="w-10 h-10 text-gray-200" />
           </div>
           <p className="text-gray-400 text-xl font-bold">
@@ -117,7 +117,7 @@ export default function NotificationsPage() {
                   }));
                 }
               }}
-              className={`bg-white p-8 rounded-[2.5rem] border border-gray-100 transition-all duration-500 hover:shadow-premium group relative overflow-hidden
+              className={`bg-white p-8 rounded-2xl border border-gray-100 transition-all duration-500 hover:shadow-premium group relative overflow-hidden
                 ${notification.type ? 'cursor-pointer' : ''}
                 ${!notification.is_read ? 'ring-2 ring-primary/5 shadow-soft border-primary/10' : 'opacity-80'}`}
             >

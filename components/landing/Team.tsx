@@ -9,7 +9,7 @@ export default function Team() {
         {
             name: "Himmatulloh Rahmatov",
             role: "Asoschi",
-            desc: "“iMed Team” platformasi asoschisi. Farg’ona Shahar Bolalar Shifoxonasi. 3 yillik tajribaga ega Pediatr shifokor. “iMed Team” da pediatriya fani bo’yicha ma’ruzachi.",
+            desc: "“TibMentor” platformasi asoschisi. Farg’ona Shahar Bolalar Shifoxonasi. 3 yillik tajribaga ega Pediatr shifokor. “TibMentor” da pediatriya fani bo’yicha ma’ruzachi.",
             img: "/assets/himmatulloh.png"
         },
         {
@@ -27,13 +27,13 @@ export default function Team() {
         {
             name: "Mirzahamid Mirzalatipov",
             role: "Ma'ruzachi",
-            desc: "Farg’ona shahar “Bolajon” klinikasi LOR jarroh shifokori. 4 yillik tajribaga ega. “iMed Team” da LOR fani ma’ruzachisi.",
+            desc: "Farg’ona shahar “Bolajon” klinikasi LOR jarroh shifokori. 4 yillik tajribaga ega. “TibMentor” da LOR fani ma’ruzachisi.",
             img: "/assets/mirzahamidmirzapolatov.jpg"
         },
         {
             name: "Doniyor Yakubov",
             role: "Ma'ruzachi",
-            desc: "FJSTI gospital xirurgiya kafedrasi assistenti. “MDM clinic” urolog shifokori. 4 yillik ish tajriba. “iMed Team” da urologiya fani ma’ruzachisi",
+            desc: "FJSTI gospital xirurgiya kafedrasi assistenti. “MDM clinic” urolog shifokori. 4 yillik ish tajriba. “TibMentor” da urologiya fani ma’ruzachisi",
             img: "/assets/doniyoryakubov.jpg"
         },
         {
@@ -45,67 +45,67 @@ export default function Team() {
         {
             name: "Zohidjon Zaylobiddinov",
             role: "IT mutaxassisi",
-            desc: "Toshkent Davlat Tibbiyot Universiteti bakalavr talabasi. 1 yildan buyon iMed Team jamoasida mobil ilova, website qurish va ularni ishini tashkillashtirish ishlarini boshqarib keladi.",
+            desc: "Toshkent Davlat Tibbiyot Universiteti bakalavr talabasi. 1 yildan buyon TibMentor jamoasida mobil ilova, website qurish va ularni ishini tashkillashtirish ishlarini boshqarib keladi.",
             img: "/assets/zohidjon.jpg"
         },
         {
             name: "Mahliyo Rashidova",
             role: "Ma'ruzachi",
-            desc: "“iMed Team” jamoasi a'zosi va Tibbiy radiolog, uzist 8 yillik ish tajribaga ega. ADTI Tibbiy radiologiya kafedrasi assitenti va doktaranti. “Onko-med” xususiy shifoxonasida shifokor uzist bo’lib ishlab kelmoqda. Ko’plab xalqaro davlatlarda tajriba orttirgan. “iMed Team” platformasi UTT va boshqa radiologik kurslar ma’ruzachisi",
+            desc: "“TibMentor” jamoasi a'zosi va Tibbiy radiolog, uzist 8 yillik ish tajribaga ega. ADTI Tibbiy radiologiya kafedrasi assitenti va doktaranti. “Onko-med” xususiy shifoxonasida shifokor uzist bo’lib ishlab kelmoqda. Ko’plab xalqaro davlatlarda tajriba orttirgan. “TibMentor” platformasi UTT va boshqa radiologik kurslar ma’ruzachisi",
             img: "/assets/mahliyorashidova.jpg"
         },
         {
             name: "Muhammadqodir Arabboyev",
             role: "Ma'ruzachi",
-            desc: "iMed Team jamoasi a'zosi va “iMed Team” platformasi urologiya kursi o’qituvchisi. Central Asian Medical University Urologiya yoʻnalishi magistratranti. Qoʻshtepa Tuman Poliklinika Shifokori",
+            desc: "TibMentor jamoasi a'zosi va “TibMentor” platformasi urologiya kursi o’qituvchisi. Central Asian Medical University Urologiya yoʻnalishi magistratranti. Qoʻshtepa Tuman Poliklinika Shifokori",
             img: "/assets/muhammadqodirarabboyev.jpg"
         },
         {
             name: "Nilufar Mamadaliyeva",
             role: "Ma'ruzachi",
-            desc: "“iMed Team” jamoasi a'zosi va “iMed Team” fiziologiya kursi o’qituvchisi. FJSTI bituruvchi kurs talabasi.",
+            desc: "“TibMentor” jamoasi a'zosi va “TibMentor” fiziologiya kursi o’qituvchisi. FJSTI bituruvchi kurs talabasi.",
             img: "/assets/nilufarmamadaliyeva.png"
         },
         {
             name: "Rahmonqul Namozov",
             role: "Ma'ruzachi",
-            desc: "“iMed Team” jamoasi a'zosi va Surxondaryo Viloyat Koʻp Tarmoqli Tibbiyot Markazi Nefrologiya-Gemodializ boʻlimida ishlayman. “iMed Team” platformasi Nefrologiya kursi lektori.",
+            desc: "“TibMentor” jamoasi a'zosi va Surxondaryo Viloyat Koʻp Tarmoqli Tibbiyot Markazi Nefrologiya-Gemodializ boʻlimida ishlayman. “TibMentor” platformasi Nefrologiya kursi lektori.",
             img: "/assets/rahmonqulnomozov.jpg"
         },
         {
             name: "Sardorbek Mamurov",
             role: "Ma'ruzachi",
-            desc: "“iMed Team” jamoasi a'zosi va Namangan viloyati “Mamura Shifo” klinikasi revmatologi. “iMed Team” platformasi revmatologiya kursi lektori. Medical English kitobi va patologiya darsliklari muallifi.",
+            desc: "“TibMentor” jamoasi a'zosi va Namangan viloyati “Mamura Shifo” klinikasi revmatologi. “TibMentor” platformasi revmatologiya kursi lektori. Medical English kitobi va patologiya darsliklari muallifi.",
             img: "/assets/sardorbekmamurov.JPG"
         },
         {
             name: "Ulugbek Zaylobidinov",
             role: "Ma'ruzachi",
-            desc: "“iMed Team” jamoasi a'zosi va tajribali mutaxassis shifokor.",
+            desc: "“TibMentor” jamoasi a'zosi va tajribali mutaxassis shifokor.",
             img: "/assets/ulugbekzaylobidinov.png"
         },
         {
             name: "Hikmatillayev Diyorbek",
             role: "Ma'ruzachi",
-            desc: "“iMed Team” platformasi  anatomiya fani o’qituvchisi.  Farmed klinikasi navbatchi travmatolog-ortopedi.",
+            desc: "“TibMentor” platformasi  anatomiya fani o’qituvchisi.  Farmed klinikasi navbatchi travmatolog-ortopedi.",
             img: "/assets/umarbekhikmatillayev.jpg"
         },
         {
             name: "Yuldosheva Mohichehra",
             role: "Ma'ruzachi",
-            desc: "“iMed Team” platformasi pediatriya kursi o’qituvchisi.",
+            desc: "“TibMentor” platformasi pediatriya kursi o’qituvchisi.",
             img: "/assets/yuldoshevamohichehra.jpg"
         },
         {
             name: "Behzod Madaminov",
             role: "Ma'ruzachi",
-            desc: "“iMed Team” platformasi o’quv bo’limi product manageri. Preklinik Patologiya fanlari, Biokimyo, Fiziologiya, Nevrologiya kabi fanlarni va Gematologiya, Kardiologiya, Qon-Tomir patologiyasi kitobi muallifi. Hozirda Germaniyada Neyrojarrohlik bo’yicha o’qishni davom ettirmoqda.",
+            desc: "“TibMentor” platformasi o’quv bo’limi product manageri. Preklinik Patologiya fanlari, Biokimyo, Fiziologiya, Nevrologiya kabi fanlarni va Gematologiya, Kardiologiya, Qon-Tomir patologiyasi kitobi muallifi. Hozirda Germaniyada Neyrojarrohlik bo’yicha o’qishni davom ettirmoqda.",
             img: "/assets/behzodmadaminov.jpg"
         },
         {
             name: "Elyor Fayzullayev",
             role: "Ma'ruzachi",
-            desc: "Kardiolog shifokor. Tez tibbiy yordam shifokori. \"iMed Team\" platformasida Tez tibbiy yordam fanidan lektor va Klinik Laborator diagnostika fanidan lektor.",
+            desc: "Kardiolog shifokor. Tez tibbiy yordam shifokori. \"TibMentor\" platformasida Tez tibbiy yordam fanidan lektor va Klinik Laborator diagnostika fanidan lektor.",
             img: "/assets/elyorfayzulla.png"
         }
     ];
@@ -115,7 +115,7 @@ export default function Team() {
             <div className="max-w-7xl mx-auto px-6">
                 <div className="reveal text-center max-w-3xl mx-auto mb-10">
                     <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight leading-tight">
-                        “iMed Team” jamoasi
+                        “TibMentor” jamoasi
                     </h2>
                     <p className="text-slate-500 mt-6 text-lg font-medium leading-relaxed">
                         Bizda shifokorlik va ustozlik mahoratiga ega bo’lgan, yetarli tajribaga ega bo’lgan TOP ustoz shifokorlar dars o’tishadi!

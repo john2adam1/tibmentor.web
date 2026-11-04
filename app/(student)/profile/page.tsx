@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import { activityService, profileService } from '@/services';
 import { ActivityStatsResponse, TestHistoryRes } from '@/types/mobile-api';
-import { Phone, BarChart3, Trash2, Camera, LogOut, MessageSquare, HelpCircle, FileText, ExternalLink, MessageCircle, ChevronRight, Crown, GraduationCap, PlayCircle, BookOpen } from 'lucide-react';
+import { Trash2, Camera, LogOut, MessageSquare, HelpCircle, FileText, ExternalLink, MessageCircle, ChevronRight, Crown, GraduationCap, PlayCircle, BookOpen, CheckCircle2 } from 'lucide-react';
 import { formatUntil, packageLabel } from '@/lib/premium';
 import { useRouter } from 'next/navigation';
 import Modal from '@/components/ui/Modal';
@@ -21,6 +21,7 @@ export default function ProfilePage() {
     const [showEditProfileForm, setShowEditProfileForm] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showGuideModal, setShowGuideModal] = useState(false);
+    const [showTestHistory, setShowTestHistory] = useState(false);
 
     // Password Form State (Removed as per user request)
 
@@ -141,302 +142,222 @@ export default function ProfilePage() {
         return `${minutes}d`;
     };
 
+    const activePackages = (user?.packages || []).filter((p) => p.is_active);
+
+    const tile = 'w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0';
+    const rowCls = 'w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-slate-50 active:bg-slate-100 transition-colors';
+
     return (
-        <div className="max-w-7xl mx-auto p-6 lg:p-10">
-            <h1 className="text-3xl font-black text-gray-900 mb-10 tracking-tight">Shaxsiy kabinet</h1>
+        <div className="max-w-5xl mx-auto">
+            <h1 className="text-xl md:text-3xl font-black text-slate-900 tracking-tight text-center md:text-left mb-5">Profil</h1>
 
             {error && (
-                <div className="mb-8 p-5 bg-primary/5 border border-primary/10 rounded-2xl text-primary text-sm font-medium flex items-center gap-3">
-                    <span className="text-xl">⚠️</span> {error}
-                </div>
+                <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-sm font-medium">{error}</div>
             )}
             {message && (
-                <div className="mb-8 p-5 bg-emerald-50 border border-emerald-100/50 rounded-2xl text-emerald-600 text-sm font-medium flex items-center gap-3">
-                    <span className="text-xl">✅</span> {message}
-                </div>
+                <div className="mb-4 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-700 text-sm font-medium">{message}</div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                {/* Left Column: Avatar & Basic Info */}
-                <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-soft text-center relative overflow-hidden group">
-                        <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-primary/10 to-primary/5 -mt-4"></div>
-
-                        <div className="relative inline-block mt-4 mb-6">
-                            <div className="w-32 h-32 rounded-[2.5rem] bg-white shadow-card flex items-center justify-center mx-auto overflow-hidden text-4xl font-black text-primary p-1 border-4 border-white">
-                                <div className="w-full h-full rounded-[2.2rem] bg-primary-tint flex items-center justify-center overflow-hidden">
-                                    {user?.image_url ? (
-                                        <img src={user.image_url} alt={user.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        user?.name?.charAt(0) || 'U'
-                                    )}
-                                </div>
+            <div className="grid lg:grid-cols-2 gap-5 items-start">
+                {/* Column 1: user, premium, tests */}
+                <div className="space-y-4">
+                    {/* User card */}
+                    <div className="bg-white rounded-3xl border border-slate-100 shadow-soft p-4 flex items-center gap-4">
+                        <div className="relative shrink-0">
+                            <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center overflow-hidden text-2xl font-black">
+                                {user?.image_url ? (
+                                    <img src={user.image_url} alt={user.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    (user?.name?.charAt(0) || 'U').toUpperCase()
+                                )}
                             </div>
                             <button
                                 onClick={() => fileInputRef.current?.click()}
-                                className="absolute bottom-0 right-0 w-10 h-10 bg-white rounded-2xl shadow-lg border border-gray-100 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all active:scale-90"
+                                aria-label="Rasm tanlash"
+                                className="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-full shadow border border-slate-100 flex items-center justify-center text-primary active:scale-90"
                             >
-                                <Camera size={18} />
+                                <Camera size={14} />
                             </button>
-                        </div>
-
-                        <h3 className="text-2xl font-black text-gray-900 mb-1">{user?.name}</h3>
-                        {user?.is_ustoz && (
-                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest mb-3">
-                                Ustoz
-                            </span>
-                        )}
-                        <p className="text-gray-400 font-medium mb-8 flex flex-col items-center justify-center gap-1">
-                            {!user?.email ? (
-                                <span className="flex items-center gap-2"><Phone size={14} /> {user?.phone_number}</span>
-                            ) : (
-                                <span className="flex items-center gap-2 text-xs opacity-75">{user.email}</span>
-                            )}
-                        </p>
-
-
-                        <div className="grid grid-cols-1 gap-3">
-                            <button
-                                onClick={() => {
-                                    setError('');
-                                    setShowEditProfileForm(true);
+                            <input
+                                type="file"
+                                accept="image/*"
+                                ref={fileInputRef}
+                                className="hidden"
+                                onChange={(e) => {
+                                    if (e.target.files && e.target.files[0]) {
+                                        setEditImage(e.target.files[0]);
+                                        setError('');
+                                        setShowEditProfileForm(true);
+                                    }
                                 }}
-                                className="w-full py-4 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-primary/20 hover:bg-primary-600 transition-all active:scale-[0.98]"
-                            >
-                                Profilni tahrirlash
-                            </button>
-                            <button
-                                onClick={logout}
-                                className="w-full py-4 bg-slate-50 text-gray-400 rounded-2xl font-bold hover:bg-red-50 hover:text-red-500 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-                            >
-                                <LogOut size={18} /> Chiqish
-                            </button>
+                            />
                         </div>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            ref={fileInputRef}
-                            className="hidden"
-                            onChange={(e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                    setEditImage(e.target.files[0]);
-                                }
+                        <button
+                            className="min-w-0 flex-1 text-left"
+                            onClick={() => {
+                                setError('');
+                                setShowEditProfileForm(true);
                             }}
-                        />
-                    </div>
-
-                    {/* Security section removed as password feature is gone */}
-                </div>
-
-                {/* Right Column: Dynamic Forms & Stats */}
-                <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-soft">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-black text-gray-900 flex items-center gap-3">
-                                <Crown className="text-primary" />
-                                Premium
-                            </h3>
-                            {!user?.is_ustoz && (
-                                <Link href="/premium" className="text-xs font-black uppercase tracking-widest text-primary">
-                                    Premium olish
-                                </Link>
+                        >
+                            <p className="font-black text-slate-900 text-lg leading-tight truncate">{user?.name}</p>
+                            {user?.is_ustoz && (
+                                <span className="inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">
+                                    <GraduationCap size={13} /> Ustoz
+                                </span>
                             )}
-                        </div>
-                        {user?.is_ustoz ? (
-                            <p className="font-bold text-gray-700">Ustoz — doimiy kirish</p>
-                        ) : user?.packages?.some((p) => p.is_active) ? (
-                            <div className="space-y-3">
-                                {user.packages.filter((p) => p.is_active).map((p) => (
-                                    <div key={p.package} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50">
-                                        <div>
-                                            <p className="font-black text-gray-900">Premium: {packageLabel(p.package)}</p>
-                                            {p.until && (
-                                                <p className="text-xs font-medium text-gray-400">{formatUntil(p.until)} gacha</p>
-                                            )}
-                                        </div>
-                                        <Link href={`/premium?package=${p.package}`} className="text-xs font-black uppercase tracking-widest text-primary">
-                                            Uzaytirish
-                                        </Link>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-between">
-                                <p className="font-bold text-gray-500">Premium yo‘q</p>
-                                <Link href="/premium" className="px-5 py-3 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest">
-                                    Premium olish
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-soft">
-                        <h3 className="text-xl font-black text-gray-900 mb-2">
-                            Test natijalari
-                            {typeof user?.tests_count === 'number' && (
-                                <span className="ml-2 text-primary/40">{user.tests_count}</span>
-                            )}
-                        </h3>
-                        {testHistory?.summary && (
-                            <p className="text-sm text-gray-400 font-medium mb-6">
-                                O‘rtacha {Math.round(testHistory.summary.average_percent)}% · eng yaxshi {Math.round(testHistory.summary.best_percent)}%
+                            <p className="text-sm text-slate-500 mt-0.5 truncate">
+                                {user?.email || user?.phone_number}
                             </p>
-                        )}
-                        {testHistory?.data?.length ? (
-                            <div className="space-y-3">
-                                {testHistory.data.map((item) => (
-                                    <button
-                                        key={item.test_id}
-                                        onClick={() => router.push(`/lessons/${item.lesson_id}/quiz/${item.test_id}?attempt=${item.last_attempt_id}`)}
-                                        className="w-full text-left p-4 rounded-2xl bg-slate-50 hover:bg-primary/5 transition-colors"
-                                    >
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div className="min-w-0">
-                                                <p className="font-black text-gray-900 truncate">{item.test_title}</p>
-                                                <p className="text-xs text-gray-400 font-medium">
-                                                    {item.course_name} · {formatUntil(item.last_finished_at)} · {item.attempts} urinish
-                                                </p>
-                                            </div>
-                                            <span className="text-lg font-black text-primary">{Math.round(item.best_percent)}%</span>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-sm text-gray-400 font-medium">Hali test ishlanmagan.</p>
-                        )}
+                        </button>
+                        <ChevronRight size={18} className="text-slate-300 shrink-0" />
                     </div>
 
-                    {/* Activity Stats */}
-                    {activityStats && (
-                        <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-soft">
-                            <h3 className="text-xl font-black text-gray-900 mb-8 flex items-center gap-3">
-                                <BarChart3 className="text-primary" />
-                                Muvaffaqiyatlarim
-                            </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <div className="p-8 bg-blue-50/50 rounded-[2rem] border border-blue-100 relative overflow-hidden group">
-                                    <div className="absolute -right-4 -bottom-4 text-blue-100 group-hover:scale-110 transition-transform duration-500">
-                                        <BarChart3 size={100} strokeWidth={1} />
-                                    </div>
-                                    <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest mb-2">Jami ball</p>
-                                    <p className="text-4xl font-black text-blue-900 mt-1">{activityStats.total} <span className="text-lg font-bold opacity-50">ball</span></p>
-                                </div>
-                                <div className="p-8 bg-emerald-50/50 rounded-[2rem] border border-emerald-100 relative overflow-hidden group">
-                                    <div className="absolute -right-4 -bottom-4 text-emerald-100 group-hover:scale-110 transition-transform duration-500">
-                                        <BarChart3 size={100} strokeWidth={1} />
-                                    </div>
-                                    <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest mb-2">O'qish vaqti</p>
-                                    <p className="text-4xl font-black text-emerald-900 mt-1">{formatTime(activityStats.total)}</p>
-                                </div>
+                    {/* Premium card — 3 states */}
+                    {user?.is_ustoz ? (
+                        <div className="rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white p-5 shadow-premium flex items-center gap-3">
+                            <GraduationCap size={26} />
+                            <div>
+                                <p className="font-black">Ustoz — doimiy kirish</p>
+                                <p className="text-sm text-white/85">Barcha kurslar ochiq · muddatsiz</p>
                             </div>
+                        </div>
+                    ) : activePackages.length > 0 ? (
+                        <div className="space-y-3">
+                            {activePackages.map((p) => (
+                                <div key={p.package} className="rounded-3xl bg-brand-hero text-white p-5 shadow-premium flex items-center gap-3">
+                                    <Crown size={22} className="shrink-0" />
+                                    <div className="min-w-0 flex-1">
+                                        <p className="font-black leading-tight">Premium: {packageLabel(p.package)}</p>
+                                        {p.until && <p className="text-sm text-white/80 mt-0.5">{formatUntil(p.until)} gacha</p>}
+                                    </div>
+                                    <Link
+                                        href={`/premium?package=${p.package}`}
+                                        className="px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-sm font-bold shrink-0 transition-colors"
+                                    >
+                                        Uzaytirish
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="rounded-3xl border-2 border-dashed border-slate-300 bg-white/60 p-5 flex items-center gap-3">
+                            <Crown size={22} className="text-primary shrink-0" />
+                            <div className="min-w-0 flex-1">
+                                <p className="font-black text-slate-900">Premium yo‘q</p>
+                                <p className="text-sm text-slate-500">Barcha kurslarni ochish uchun</p>
+                            </div>
+                            <Link href="/premium" className="px-4 py-2.5 rounded-full bg-brand-ink text-white text-sm font-bold shrink-0">
+                                Premium olish
+                            </Link>
                         </div>
                     )}
 
-                    {/* Yordam va Ma'lumotlar */}
-                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-soft">
-                        <h3 className="text-xl font-black text-gray-900 mb-8 flex items-center gap-3">
-                            <HelpCircle className="text-primary" />
-                            Yordam va ma'lumotlar
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <a
-                                href="https://t.me/imedteam_feedback"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-6 bg-slate-50 hover:bg-primary/5 border border-slate-100 rounded-3xl transition-all group"
-                            >
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-primary shadow-sm">
-                                        <MessageSquare size={20} />
+                    {/* Test results */}
+                    <div className="bg-white rounded-3xl border border-slate-100 shadow-soft overflow-hidden">
+                        <button onClick={() => setShowTestHistory(!showTestHistory)} className={rowCls}>
+                            <span className={tile}><CheckCircle2 size={18} /></span>
+                            <span className="flex-1 font-bold text-slate-900">Test natijalari</span>
+                            {typeof user?.tests_count === 'number' && (
+                                <span className="text-sm font-semibold text-slate-400">{user.tests_count}</span>
+                            )}
+                            <ChevronRight size={16} className={`text-slate-300 transition-transform ${showTestHistory ? 'rotate-90' : ''}`} />
+                        </button>
+                        {showTestHistory && (
+                            <div className="border-t border-slate-100 p-4 space-y-3 bg-slate-50/60">
+                                {testHistory?.summary && (
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {[
+                                            { v: testHistory.summary.tests_count, l: 'test' },
+                                            { v: `${Math.round(testHistory.summary.average_percent)}%`, l: 'o‘rtacha' },
+                                            { v: `${Math.round(testHistory.summary.best_percent)}%`, l: 'eng yaxshi' },
+                                        ].map((x) => (
+                                            <div key={x.l} className="bg-white rounded-2xl py-2.5 text-center border border-slate-100">
+                                                <p className="font-black text-slate-900">{x.v}</p>
+                                                <p className="text-[11px] text-slate-500">{x.l}</p>
+                                            </div>
+                                        ))}
                                     </div>
-                                    <ExternalLink size={16} className="text-gray-300 group-hover:text-primary transition-colors" />
-                                </div>
-                                <p className="font-black text-gray-900 leading-tight">Fikr bildirish</p>
-                                <p className="text-gray-400 text-xs font-medium mt-1">Telegram orqali murojaat</p>
-                            </a>
-
-                            <a
-                                href="https://t.me/manager_iMedteam"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-6 bg-slate-50 hover:bg-primary/5 border border-slate-100 rounded-3xl transition-all group"
-                            >
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-primary shadow-sm">
-                                        <MessageCircle size={20} />
-                                    </div>
-                                    <ExternalLink size={16} className="text-gray-300 group-hover:text-primary transition-colors" />
-                                </div>
-                                <p className="font-black text-gray-900 leading-tight">Admin bilan aloqa</p>
-                                <p className="text-gray-400 text-xs font-medium mt-1">Savollar bo'yicha yozing</p>
-                            </a>
-
-                            <button
-                                onClick={() => setShowGuideModal(true)}
-                                className="p-6 bg-slate-50 hover:bg-primary/5 border border-slate-100 rounded-3xl transition-all group text-left"
-                            >
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-primary shadow-sm">
-                                        <HelpCircle size={20} />
-                                    </div>
-                                    <ChevronRight size={16} className="text-gray-300 group-hover:text-primary transition-colors" />
-                                </div>
-                                <p className="font-black text-gray-900 leading-tight">Qo'llanma</p>
-                                <p className="text-gray-400 text-xs font-medium mt-1">Platformadan foydalanish</p>
-                            </button>
-
-                            <Link
-                                href="/offerta"
-                                className="p-6 bg-slate-50 hover:bg-primary/5 border border-slate-100 rounded-3xl transition-all group text-left"
-                            >
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-primary shadow-sm">
-                                        <FileText size={20} />
-                                    </div>
-                                    <ExternalLink size={16} className="text-gray-300 group-hover:text-primary transition-colors" />
-                                </div>
-                                <p className="font-black text-gray-900 leading-tight">Ommaviy oferta</p>
-                                <p className="text-gray-400 text-xs font-medium mt-1">Shartnoma va qoidalar</p>
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* Danger Zone */}
-                    <div className="bg-red-50/50 p-8 rounded-[2.5rem] border border-red-100">
-                        <h3 className="text-xl font-black text-red-700 mb-2 flex items-center gap-2">
-                            <Trash2 size={24} /> Xavfli hudud
-                        </h3>
-                        <p className="text-red-600 font-medium mb-8">Hisobingizni o'chirish qaytarib bo'lmas jarayon bo'lib, barcha ma'lumotlaringiz butunlay yo'qoladi.</p>
-
-                        {!showDeleteConfirm ? (
-                            <button
-                                onClick={() => setShowDeleteConfirm(true)}
-                                className="px-10 py-4 bg-white border-2 border-red-100 text-red-600 rounded-2xl font-bold hover:bg-red-600 hover:text-white hover:border-red-600 transition-all active:scale-[0.98] shadow-sm"
-                            >
-                                Hisobni o'chirish
-                            </button>
-                        ) : (
-                            <div className="p-8 bg-white rounded-[2rem] border-2 border-red-100 shadow-xl relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-2 h-full bg-red-600"></div>
-                                <p className="mb-8 text-gray-900 font-black text-lg leading-tight uppercase tracking-tight">Haqiqatan ham hisobingizni o'chirib yubormoqchimisiz?</p>
-                                <div className="flex flex-col sm:flex-row gap-4">
-                                    <button
-                                        onClick={handleDeleteAccount}
-                                        disabled={loading}
-                                        className="px-10 py-4 bg-red-600 text-white rounded-2xl font-black shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all active:scale-[0.98] disabled:opacity-50"
-                                    >
-                                        {loading ? 'O\'chirilmoqda...' : 'Ha, o\'chirilsin'}
-                                    </button>
-                                    <button
-                                        onClick={() => setShowDeleteConfirm(false)}
-                                        className="px-10 py-4 bg-slate-50 text-gray-500 rounded-2xl font-bold hover:bg-slate-100 transition-all active:scale-[0.98]"
-                                    >
-                                        Yo'q, qolsin
-                                    </button>
-                                </div>
+                                )}
+                                {testHistory?.data?.length ? (
+                                    testHistory.data.map((item) => {
+                                        const pct = Math.round(item.best_percent);
+                                        const tone = pct >= 90 ? 'bg-emerald-50 text-emerald-700' : pct >= 70 ? 'bg-blue-50 text-primary' : 'bg-amber-50 text-amber-700';
+                                        return (
+                                            <button
+                                                key={item.test_id}
+                                                onClick={() => router.push(`/lessons/${item.lesson_id}/quiz/${item.test_id}?attempt=${item.last_attempt_id}`)}
+                                                className="w-full flex items-center gap-3 p-3 bg-white rounded-2xl border border-slate-100 text-left hover:border-primary/30 transition-colors"
+                                            >
+                                                <span className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-black shrink-0 ${tone}`}>{pct}%</span>
+                                                <span className="min-w-0 flex-1">
+                                                    <span className="block font-bold text-slate-900 truncate">{item.test_title}</span>
+                                                    <span className="block text-xs text-slate-500 truncate">
+                                                        {item.course_name} · {formatUntil(item.last_finished_at)} · {item.attempts} urinish
+                                                    </span>
+                                                </span>
+                                                <ChevronRight size={16} className="text-slate-300" />
+                                            </button>
+                                        );
+                                    })
+                                ) : (
+                                    <p className="text-sm text-slate-500 text-center py-3">Hali test ishlanmagan.</p>
+                                )}
                             </div>
                         )}
+                    </div>
+
+                    {/* Activity */}
+                    {activityStats && (
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-white rounded-3xl border border-slate-100 shadow-soft p-4">
+                                <p className="text-xs text-slate-500 mb-1">Jami ball</p>
+                                <p className="text-2xl font-black text-slate-900 tabular-nums">{activityStats.total}</p>
+                            </div>
+                            <div className="bg-white rounded-3xl border border-slate-100 shadow-soft p-4">
+                                <p className="text-xs text-slate-500 mb-1">O‘qish vaqti</p>
+                                <p className="text-2xl font-black text-slate-900 tabular-nums">{formatTime(activityStats.total)}</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Column 2: settings */}
+                <div className="space-y-4">
+                    <div className="bg-white rounded-3xl border border-slate-100 shadow-soft divide-y divide-slate-100 overflow-hidden">
+                        <a href="https://t.me/imedteam_feedback" target="_blank" rel="noopener noreferrer" className={rowCls}>
+                            <span className={tile}><MessageSquare size={18} /></span>
+                            <span className="flex-1 font-semibold text-slate-800">Fikr bildirish</span>
+                            <ExternalLink size={15} className="text-slate-300" />
+                        </a>
+                        <a href="https://t.me/manager_iMedteam" target="_blank" rel="noopener noreferrer" className={rowCls}>
+                            <span className={tile}><MessageCircle size={18} /></span>
+                            <span className="flex-1 font-semibold text-slate-800">Adminga yozish</span>
+                            <ExternalLink size={15} className="text-slate-300" />
+                        </a>
+                    </div>
+
+                    <div className="bg-white rounded-3xl border border-slate-100 shadow-soft divide-y divide-slate-100 overflow-hidden">
+                        <button onClick={() => setShowGuideModal(true)} className={rowCls}>
+                            <span className={tile}><HelpCircle size={18} /></span>
+                            <span className="flex-1 font-semibold text-slate-800">Yo‘riqnoma</span>
+                            <ChevronRight size={16} className="text-slate-300" />
+                        </button>
+                        <Link href="/offerta" className={rowCls}>
+                            <span className={tile}><FileText size={18} /></span>
+                            <span className="flex-1 font-semibold text-slate-800">Ommaviy oferta</span>
+                            <ChevronRight size={16} className="text-slate-300" />
+                        </Link>
+                    </div>
+
+                    <div className="bg-white rounded-3xl border border-slate-100 shadow-soft divide-y divide-slate-100 overflow-hidden">
+                        <button onClick={logout} className={`${rowCls} text-red-600`}>
+                            <span className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center shrink-0"><LogOut size={18} /></span>
+                            <span className="flex-1 font-semibold">Hisobdan chiqish</span>
+                        </button>
+                        <button onClick={() => setShowDeleteConfirm(true)} className={`${rowCls} text-slate-500`}>
+                            <span className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0"><Trash2 size={18} /></span>
+                            <span className="flex-1 font-semibold">Hisobni o‘chirish</span>
+                        </button>
                     </div>
                 </div>
             </div>

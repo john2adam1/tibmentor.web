@@ -39,12 +39,12 @@ export default function BannerSlider({ banners }: BannerSliderProps) {
 
     return (
         <div
-            className="relative w-full overflow-hidden rounded-[3rem] shadow-premium hover:shadow-2xl transition-all duration-500 group"
+            className="relative w-full overflow-hidden rounded-3xl shadow-soft transition-all duration-500 group"
             onMouseEnter={() => setIsAutoPlaying(false)}
             onMouseLeave={() => setIsAutoPlaying(true)}
         >
             <div
-                className="flex transition-transform duration-700 ease-in-out h-auto md:h-[400px]"
+                className="flex transition-transform duration-700 ease-in-out h-auto md:h-[220px] lg:h-[250px]"
                 style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
                 {banners.map((banner) => (
@@ -54,7 +54,7 @@ export default function BannerSlider({ banners }: BannerSliderProps) {
                         onClick={() => banner.link_url && window.open(banner.link_url, '_blank')}
                     >
                         {/* Media Container */}
-                        <div className="relative w-full aspect-[16/10] md:absolute md:inset-0 md:aspect-auto h-auto md:h-full overflow-hidden">
+                        <div className="relative w-full aspect-[16/8] md:absolute md:inset-0 md:aspect-auto h-auto md:h-full overflow-hidden">
                             {banner.image_url ? (
                                 isVideoUrl(banner.image_url) ? (
                                     <video
@@ -71,7 +71,7 @@ export default function BannerSlider({ banners }: BannerSliderProps) {
                                         alt={banner.title}
                                         className="w-full h-full object-cover"
                                         onError={(e) => {
-                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/1200x600/800000/FFFFFF?text=IMED+PLATFORMA';
+                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/1200x600/0B1D4F/31D0FC?text=TIBMENTOR';
                                         }}
                                     />
                                 )
@@ -81,22 +81,22 @@ export default function BannerSlider({ banners }: BannerSliderProps) {
                         </div>
 
                         {/* Content Container */}
-                        <div className="relative md:absolute md:inset-0 p-6 md:p-10 flex flex-col justify-end items-start pointer-events-none">
-                            <div className="max-w-md w-full bg-slate-50 md:bg-black/30 md:backdrop-blur-md rounded-[2rem] p-6 border border-gray-100 md:border-white/10 shadow-soft md:shadow-lg pointer-events-auto transform transition-transform duration-300 hover:scale-[1.02]">
-                                <div className="space-y-3">
+                        <div className="relative md:absolute md:inset-0 p-4 md:p-6 flex flex-col justify-end items-start pointer-events-none">
+                            <div className="max-w-sm w-full bg-slate-50 md:bg-black/30 md:backdrop-blur-md rounded-2xl p-4 border border-gray-100 md:border-white/10 shadow-soft md:shadow-lg pointer-events-auto transform transition-transform duration-300 hover:scale-[1.02]">
+                                <div className="space-y-2">
                                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary text-white rounded-full font-black text-[9px] uppercase tracking-widest shadow-lg">
                                         Yangi e'lon
                                     </div>
-                                    <h2 className="text-xl md:text-2xl font-black text-gray-900 md:text-white leading-tight drop-shadow-sm">
+                                    <h2 className="text-base md:text-lg font-black text-gray-900 md:text-white leading-tight drop-shadow-sm">
                                         {banner.title}
                                     </h2>
                                     {banner.description && (
-                                        <p className="text-gray-500 md:text-white/90 text-sm font-medium leading-relaxed line-clamp-2 drop-shadow-sm">
+                                        <p className="text-gray-500 md:text-white/90 text-xs md:text-sm font-medium leading-snug line-clamp-2 drop-shadow-sm">
                                             {banner.description}
                                         </p>
                                     )}
                                     {banner.link_url && (
-                                        <div className="pt-2">
+                                        <div className="pt-1">
                                             <span className="inline-flex items-center gap-2 text-primary md:text-white font-black uppercase tracking-widest text-xs hover:gap-3 transition-all">
                                                 Batafsil <ChevronRight size={14} />
                                             </span>
@@ -114,21 +114,21 @@ export default function BannerSlider({ banners }: BannerSliderProps) {
                 <>
                     <button
                         onClick={(e) => { e.stopPropagation(); prevSlide(); }}
-                        className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-primary transition-all active:scale-95 opacity-0 group-hover:opacity-100 shadow-lg"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-primary transition-all active:scale-95 opacity-0 group-hover:opacity-100 shadow-lg"
                         aria-label="Previous slide"
                     >
-                        <ChevronLeft size={24} />
+                        <ChevronLeft size={18} />
                     </button>
                     <button
                         onClick={(e) => { e.stopPropagation(); nextSlide(); }}
-                        className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-primary transition-all active:scale-95 opacity-0 group-hover:opacity-100 shadow-lg"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-primary transition-all active:scale-95 opacity-0 group-hover:opacity-100 shadow-lg"
                         aria-label="Next slide"
                     >
-                        <ChevronRight size={24} />
+                        <ChevronRight size={18} />
                     </button>
 
                     {/* Indicators */}
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
                         {banners.map((_, index) => (
                             <button
                                 key={index}

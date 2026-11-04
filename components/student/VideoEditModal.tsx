@@ -62,7 +62,7 @@ export default function VideoEditModal({
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full px-6 py-4 bg-slate-50 border border-transparent focus:border-primary/20 focus:bg-white rounded-[1.5rem] font-bold text-gray-900 transition-all outline-none"
+                        className="w-full px-6 py-4 bg-slate-50 border border-transparent focus:border-primary/20 focus:bg-white rounded-xl font-bold text-gray-900 transition-all outline-none"
                         placeholder="Masalan: 1-qism: Kirish"
                         required
                     />
@@ -77,7 +77,7 @@ export default function VideoEditModal({
                         type="text"
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
-                        className="w-full px-6 py-4 bg-slate-50 border border-transparent focus:border-primary/20 focus:bg-white rounded-[1.5rem] font-bold text-gray-900 transition-all outline-none"
+                        className="w-full px-6 py-4 bg-slate-50 border border-transparent focus:border-primary/20 focus:bg-white rounded-xl font-bold text-gray-900 transition-all outline-none"
                         placeholder="https://www.youtube.com/watch?v=..."
                     />
                     <p className="text-[10px] text-gray-400 font-medium italic">
@@ -94,7 +94,7 @@ export default function VideoEditModal({
                         type="text"
                         value={videoUrl}
                         onChange={(e) => setVideoUrl(e.target.value)}
-                        className="w-full px-6 py-4 bg-slate-50 border border-transparent focus:border-primary/20 focus:bg-white rounded-[1.5rem] font-bold text-gray-900 transition-all outline-none"
+                        className="w-full px-6 py-4 bg-slate-50 border border-transparent focus:border-primary/20 focus:bg-white rounded-xl font-bold text-gray-900 transition-all outline-none"
                         placeholder="https://server.com/video.mp4"
                     />
                     <p className="text-[10px] text-gray-400 font-medium italic">
@@ -114,7 +114,7 @@ export default function VideoEditModal({
                             onChange={(e) => setFile(e.target.files?.[0] || null)}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                         />
-                        <div className={`w-full px-6 py-8 border-2 border-dashed rounded-[1.5rem] flex flex-col items-center justify-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-gray-100 group-hover:border-primary/20'}`}>
+                        <div className={`w-full px-6 py-8 border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${file ? 'border-primary bg-primary/5' : 'border-gray-100 group-hover:border-primary/20'}`}>
                             {file ? (
                                 <>
                                     <div className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center mb-2">

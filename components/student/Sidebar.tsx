@@ -2,92 +2,104 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, Activity, User, LogOut, Grid, Crown } from 'lucide-react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { Bell, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
-
-const navItems = [
-    { name: 'Asosiy', href: '/dashboard', icon: Home },
-    { name: 'Barcha kurslar', href: '/courses', icon: Grid },
-    { name: 'Reyting', href: '/leaderboard', icon: Activity },
-    { name: 'Premium', href: '/premium', icon: Crown },
-    { name: 'Profil', href: '/profile', icon: User },
-];
+import BrandWordmark from '@/components/common/BrandWordmark';
+import PremiumButton from '@/components/student/PremiumButton';
+import { BRAND_NAME } from '@/lib/brand';
+import { NAV_ITEMS, isNavActive } from '@/lib/nav';
+import { cn } from '@/lib/utils';
 
 interface SidebarProps {
-    className?: string;
-    onClose?: () => void;
+    hasUnread?: boolean;
 }
 
-export default function Sidebar({ className = '', onClose }: SidebarProps) {
-    const pathname = usePathname();
+/**
+ * Tablet (md): narrow icon rail with small labels.
+ * Laptop (lg+): full sidebar. Hidden on phones (BottomNav is used instead).
+ */
+export default function Sidebar({ hasUnread }: SidebarProps) {
+    const pathname = usePathname() || '';
+    const onMyTab = useSearchParams()?.get('tab') === 'my';
     const { logout } = useAuth();
 
+    const itemClass = (active: boolean) =>
+        cn(
+            'flex flex-col lg:flex-row items-center lg:gap-3 gap-1 rounded-2xl font-semibold transition-all',
+            'px-2 py-2.5 lg:px-3 lg:py-3 text-[10px] lg:text-sm',
+            active
+                ? 'bg-primary/10 text-primary'
+                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+        );
+
+    const iconTile = (active: boolean) =>
+        cn(
+            'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors',
+            active ? 'bg-primary text-white' : 'bg-primary/10 text-primary'
+        );
+
+    const notifActive = pathname.startsWith('/notifications');
+
     return (
-        <div className={`w-80 bg-white border-r border-gray-100 flex flex-col h-screen sticky top-0 overflow-hidden shadow-[10px_0_30px_-15px_rgba(0,0,0,0.05)] ${className}`}>
-            {/* Logo Area */}
-            <div className="p-8 mb-4 flex justify-between items-center">
-                <Link href="/dashboard" className="flex items-center gap-3 group" onClick={onClose}>
-                    <div className="w-12 h-12 relative group-hover:scale-110 transition-transform">
-                        <Image
-                            src="/assets/logo.png"
-                            alt="iMed Team"
-                            fill
-                            className="object-contain"
-                            priority
-                        />
+        <aside className="hidden md:flex fixed inset-y-0 left-0 z-30 w-24 lg:w-64 bg-white border-r border-slate-200 flex-col h-screen overflow-hidden">
+            {/* Logo */}
+            <div className="px-3 lg:px-6 pt-6 pb-4 flex justify-center lg:justify-start">
+                <Link href="/dashboard" className="flex items-center gap-3 group">
+                    <div className="w-10 h-10 relative group-hover:scale-105 transition-transform">
+                        <Image src="/assets/logo.png" alt={BRAND_NAME} fill className="object-contain" priority />
                     </div>
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tighter">
-                        iMed Team
-                    </h2>
+                    <BrandWordmark className="hidden lg:inline text-xl tracking-tighter" />
                 </Link>
-                {/* Close button for mobile */}
-                {onClose && (
-                    <button onClick={onClose} className="lg:hidden p-2 text-gray-400 hover:text-gray-900">
-                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                )}
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 px-4 space-y-2">
-                {navItems.map((item) => {
-                    const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+            {/* PREMIUM */}
+            <div className="px-3 lg:px-5 pb-4 flex justify-center">
+                <PremiumButton className="w-full py-2.5 text-[9px] lg:text-[11px] px-2" />
+            </div>
+
+            {/* Main navigation */}
+            <nav className="flex-1 px-2 lg:px-4 space-y-1.5 overflow-y-auto no-scrollbar" aria-label="Asosiy menyu">
+                {NAV_ITEMS.map((item) => {
+                    const active = isNavActive(item.href, pathname, onMyTab);
                     const Icon = item.icon;
                     return (
-                        <Link
-                            key={item.name}
-                            href={item.href}
-                            onClick={onClose}
-                            className={`flex items-center gap-4 px-6 py-4 rounded-[1.5rem] font-black transition-all duration-300 group
-                                ${isActive
-                                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]'
-                                    : 'text-slate-700 hover:bg-slate-50 hover:text-primary'
-                                }`}
-                        >
-                            <Icon size={22} className={isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary transition-colors'} />
+                        <Link key={item.name} href={item.href} className={itemClass(active)} title={item.name}>
+                            <span className={iconTile(active)}>
+                                <Icon size={18} />
+                            </span>
                             <span className="tracking-tight">{item.name}</span>
-                            {isActive && (
-                                <div className="ml-auto w-1.5 h-1.5 bg-white rounded-full"></div>
-                            )}
                         </Link>
                     );
                 })}
             </nav>
 
-            {/* Bottom Actions */}
-            <div className="p-6 border-t border-slate-50 bg-slate-50/30">
+            {/* Notifications + logout */}
+            <div className="p-2 lg:p-4 border-t border-slate-100 space-y-1.5">
+                <Link href="/notifications" className={itemClass(notifActive)} title="Bildirishnomalar">
+                    <span className={cn(iconTile(notifActive), 'relative')}>
+                        <Bell size={18} />
+                        {hasUnread && (
+                            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-brand-cyan rounded-full border-2 border-white" />
+                        )}
+                    </span>
+                    <span className="tracking-tight">
+                        <span className="lg:hidden">Xabarlar</span>
+                        <span className="hidden lg:inline">Bildirishnomalar</span>
+                    </span>
+                </Link>
                 <button
                     onClick={() => logout()}
-                    className="w-full flex items-center gap-4 px-6 py-4 rounded-[1.5rem] font-black text-slate-700 hover:bg-red-50 hover:text-red-500 transition-all group"
+                    title="Chiqish"
+                    className="w-full flex flex-col lg:flex-row items-center lg:gap-3 gap-1 px-2 py-2.5 lg:px-3 lg:py-3 rounded-2xl text-[10px] lg:text-sm font-semibold text-slate-500 hover:bg-red-50 hover:text-red-500 transition-all group"
                 >
-                    <LogOut size={22} className="group-hover:rotate-12 transition-transform" />
+                    <span className="w-9 h-9 rounded-xl bg-slate-100 group-hover:bg-red-100 flex items-center justify-center">
+                        <LogOut size={18} />
+                    </span>
                     <span className="tracking-tight">Chiqish</span>
                 </button>
             </div>
-        </div>
+        </aside>
     );
 }

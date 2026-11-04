@@ -1,4 +1,4 @@
-// Clean API Client for iMed Platform
+// Clean API Client for TibMentor Platform
 // Uses environment-based API URL
 // Supports multiple namespaces (mobile/web)
 
@@ -16,7 +16,7 @@ export interface ApiClientOptions extends RequestInit {
 }
 
 /**
- * Main API client for iMed platform
+ * Main API client for TibMentor platform
  * Handles authentication, error handling, and token management
  */
 export async function apiClient<T>(

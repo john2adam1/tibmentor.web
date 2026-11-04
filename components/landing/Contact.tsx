@@ -5,12 +5,12 @@ export default function Contact() {
             <div className="max-w-7xl mx-auto px-6 relative z-10">
                 <div className="grid lg:grid-cols-2 gap-20 items-center">
                     <div>
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary/10 text-primary text-sm font-bold mb-8">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-brand-cyan/10 text-brand-cyan text-sm font-bold mb-8">
                             ALOQA
                         </div>
                         <h2 className="text-4xl sm:text-6xl font-bold text-white tracking-tight leading-tight mb-8">
                             Savollaringiz bormi? <br />
-                            <span className="text-primary">Biz sizga yordam beramiz!</span>
+                            <span className="text-brand-cyan">Biz sizga yordam beramiz!</span>
                         </h2>
                         <p className="text-slate-400 text-xl font-medium leading-relaxed mb-12 max-w-lg">
                             Professional jamoamiz sizni qiziqtirgan barcha savollarga javob berishga tayyor.
@@ -55,7 +55,7 @@ export default function Contact() {
                             <div className="mt-10 pt-10 border-t border-slate-100 text-center">
                                 <p className="text-slate-400 font-bold text-sm tracking-wide">
                                     BIZNING RASMIY KANALIMIZ:
-                                    <a href="https://t.me/iMed_team" className="text-primary ml-2 hover:underline">@iMed_team</a>
+                                    <a href="https://t.me/iMed_team" className="text-brand-cyan ml-2 hover:underline">@iMed_team</a>
                                 </p>
                             </div>
                         </div>
