@@ -1,16 +1,3 @@
-import { PremiumPackage } from '@/types/mobile-api';
-
-export const PACKAGE_LABELS: Record<PremiumPackage, string> = {
-    fundamental: 'Fundamental fanlar',
-    preclinical: 'Preklinik fanlar',
-    clinical: 'Klinik fanlar',
-};
-
-export function packageLabel(pkg?: PremiumPackage | null): string {
-    if (!pkg) return 'Premium';
-    return PACKAGE_LABELS[pkg] || 'Premium';
-}
-
 export function formatUntil(iso?: string | null): string {
     if (!iso) return '';
     const d = new Date(iso);
@@ -34,3 +21,15 @@ export const LESSON_NO_ACCESS = 'no access to this lesson';
 export const TARIFF_SALES_CLOSED = 'tariff sales are closed, please update the app';
 export const TEST_TIME_UP = 'test time is up';
 export const ATTEMPT_FINISHED = 'attempt already finished';
+
+/** Map backend premium error messages to user-facing Uzbek text. */
+export function premiumErrorMessage(message?: string): string {
+    switch (message) {
+        case 'premium price is not configured':
+            return 'Bu fan uchun Premium narxi belgilanmagan';
+        case 'subject_id is required':
+            return 'Modul tanlanmagan';
+        default:
+            return message || '';
+    }
+}

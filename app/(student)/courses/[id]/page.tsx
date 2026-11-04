@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { courseService } from '@/services';
+import { courseService, premiumService } from '@/services';
 import { ContentType, MobileCourseRes } from '@/types/mobile-api';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { rememberCourse, withCourse } from '@/lib/celebrate';
 import toast from 'react-hot-toast';
-import { packageLabel } from '@/lib/premium';
 import { CheckCircle2, ChevronLeft, ChevronRight, Crown, FileText, Headphones, ClipboardCheck, Lock, Play } from 'lucide-react';
 
 export default function CourseDetailPage() {
@@ -19,6 +18,7 @@ export default function CourseDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isEnrolling, setIsEnrolling] = useState(false);
+    const [subjectName, setSubjectName] = useState('');
 
     useEffect(() => {
         if (!id) return;
@@ -39,6 +39,22 @@ export default function CourseDetailPage() {
 
         fetchCourse();
     }, [id]);
+
+    // Subject (module) name for the Premium button comes from the premium offers list
+    useEffect(() => {
+        if (!course?.subject_id || course.has_access) return;
+        let cancelled = false;
+        premiumService
+            .getPremium()
+            .then((res) => {
+                const offer = res.packages?.find((p) => p.subject_id === course.subject_id);
+                if (!cancelled && offer) setSubjectName(offer.name);
+            })
+            .catch(() => {});
+        return () => {
+            cancelled = true;
+        };
+    }, [course?.subject_id, course?.has_access]);
 
     if (loading) {
         return (
@@ -64,9 +80,9 @@ export default function CourseDetailPage() {
 
     const isFree = !!course.is_public;
     const hasAccess = !!course.has_access;
-    const premiumHref = course.package
-        ? `/premium?package=${course.package}`
-        : '/premium';
+    // Subject premium: shown only when the subject has a premium price (T-12)
+    const canBuyPremium = !hasAccess && !isFree && (course.premium_price ?? 0) > 0;
+    const premiumHref = course.subject_id ? `/premium?subject=${course.subject_id}` : '/premium';
     const contentTypeLabel: Record<ContentType, string> = {
         video: 'Video',
         audio: 'Audio',
@@ -127,14 +143,14 @@ export default function CourseDetailPage() {
         >
             {isEnrolling ? 'Yuklanmoqda...' : 'Kursni boshlash'}
         </button>
-    ) : (
+    ) : canBuyPremium ? (
         <Link
             href={premiumHref}
             className="flex items-center justify-center gap-2 w-full py-4 bg-brand-gradient text-white rounded-2xl font-bold text-center shadow-soft hover:opacity-95 active:scale-[0.99] transition-all"
         >
-            <Crown size={16} fill="currentColor" /> {packageLabel(course.package)} Premiumini olish
+            <Crown size={16} fill="currentColor" /> {subjectName ? `${subjectName} Premiumini olish` : 'Premium olish'}
         </Link>
-    );
+    ) : null;
 
     return (
         <div className="max-w-3xl mx-auto pb-28 md:pb-10">
@@ -182,13 +198,13 @@ export default function CourseDetailPage() {
                     <span className="px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">Bepul kurs</span>
                 ) : hasAccess ? (
                     <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
-                        <Crown size={12} /> {packageLabel(course.package)} · faol
+                        <Crown size={12} /> {subjectName ? `${subjectName} · faol` : 'Premium · faol'}
                     </span>
-                ) : (
+                ) : canBuyPremium && subjectName ? (
                     <span className="px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
-                        {packageLabel(course.package)}
+                        {subjectName}
                     </span>
-                )}
+                ) : null}
             </div>
 
             {/* Modules & Lessons List */}
@@ -270,9 +286,9 @@ export default function CourseDetailPage() {
                     </div>
                 )}
 
-                {!hasAccess && !isFree && (
+                {canBuyPremium && (
                     <p className="text-sm text-slate-500 px-1">
-                        Bu kurs «{packageLabel(course.package)}» Premiumi bilan ochiladi. Boshqa modul obunasi bu kursni ochmaydi.
+                        Bu kurs {subjectName ? `«${subjectName}» ` : ''}Premiumi bilan ochiladi. Boshqa modul obunasi bu kursni ochmaydi.
                     </p>
                 )}
             </div>

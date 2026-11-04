@@ -7,11 +7,11 @@ import { Suspense } from 'react';
 function TariffsRedirect() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const pkg = searchParams?.get('package');
+    const subject = searchParams?.get('subject');
 
     useEffect(() => {
-        router.replace(pkg ? `/premium?package=${pkg}` : '/premium');
-    }, [pkg, router]);
+        router.replace(subject ? `/premium?subject=${subject}` : '/premium');
+    }, [subject, router]);
 
     return (
         <div className="flex justify-center items-center min-h-[50vh]">

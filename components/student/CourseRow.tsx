@@ -50,7 +50,7 @@ export default function CourseRow({ href, title, imageUrl, subtitle, percentage,
                 <div className="flex items-start gap-2">
                     <h3 className="font-black text-slate-900 leading-snug line-clamp-2 flex-1">{title}</h3>
                     {badge === 'free' && (
-                        <span className="shrink-0 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[11px] font-bold">Ochiq</span>
+                        <span className="shrink-0 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold">Bepul</span>
                     )}
                     {badge === 'locked' && (
                         <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-[11px] font-bold">

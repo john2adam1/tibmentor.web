@@ -7,15 +7,17 @@ import {
     notificationService,
     activityService,
     ratingService,
-    subjectService
+    subjectService,
+    premiumService
 } from '@/services';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Crown, Lock } from 'lucide-react';
+import { ChevronRight, Crown } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import BannerSlider from '@/components/student/BannerSlider';
 import CourseRow, { daysLeft } from '@/components/student/CourseRow';
-import { formatUntil, packageLabel } from '@/lib/premium';
+import { formatSom, formatUntil } from '@/lib/premium';
 import Link from 'next/link';
+import { PremiumPackageOffer } from '@/types/mobile-api';
 
 const SECTION_STYLE: Record<string, { emoji: string; tile: string }> = {
     fundamental: { emoji: '🫀', tile: 'bg-rose-50' },
@@ -25,8 +27,7 @@ const SECTION_STYLE: Record<string, { emoji: string; tile: string }> = {
     default: { emoji: '📚', tile: 'bg-indigo-50' },
 };
 
-function sectionStyle(name: string, pkg?: string | null) {
-    if (pkg && SECTION_STYLE[pkg]) return SECTION_STYLE[pkg];
+function sectionStyle(name: string) {
     const n = (name || '').toLowerCase();
     if (n.includes('fundamental')) return SECTION_STYLE.fundamental;
     if (n.includes('preklinik')) return SECTION_STYLE.preclinical;
@@ -41,6 +42,7 @@ export default function AppHome() {
     const [activity, setActivity] = useState<any>(null);
     const [rating, setRating] = useState<any>(null);
     const [subjects, setSubjects] = useState<any[]>([]);
+    const [offers, setOffers] = useState<PremiumPackageOffer[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
@@ -69,7 +71,8 @@ export default function AppHome() {
                 fetchData(() => bannerService.getBanners(), setBanners, 'banners'),
                 fetchData(() => activityService.getStats({ type: 'year' }), setActivity, 'activity'),
                 fetchData(() => ratingService.getRating(), setRating, 'rating'),
-                fetchData(() => subjectService.getAll(), (d) => setSubjects(d.subjects || []), 'subjects')
+                fetchData(() => subjectService.getAll(), (d) => setSubjects(d.subjects || []), 'subjects'),
+                fetchData(() => premiumService.getPremium(), (d) => setOffers(d.packages || []), 'premium offers')
             ]);
 
             setLoading(false);
@@ -114,19 +117,25 @@ export default function AppHome() {
         ...[...subjects]
             .sort((x, y) => (x.order_num ?? 0) - (y.order_num ?? 0))
             .map((s) => {
-                const pkg = s.package || null;
-                const active = isUstoz || (pkg ? activePackages.some((p) => p.package === pkg) : false);
-                const st = sectionStyle(s.name, pkg);
+                // Premium state per subject: only subjects that have a premium offer get a badge
+                const offer = offers.find((o) => o.subject_id === s.id);
+                const active =
+                    isUstoz ||
+                    !!offer?.is_active ||
+                    activePackages.some((p) => p.subject_id === s.id);
+                const st = sectionStyle(s.name);
                 return {
                     key: s.id,
                     name: s.name,
                     desc: s.description || (s.total_courses !== undefined ? `${s.total_courses} ta kurs` : ''),
                     href: `/courses?subject=${s.id}`,
                     st,
-                    status: pkg ? (active ? 'active' : 'locked') : null,
+                    premium: offer || active
+                        ? { active, until: offer?.until ?? null, price: offer?.price ?? 0 }
+                        : null,
                 };
             }),
-        { key: 'free', name: 'Bepul kurslar', desc: 'Bepul namunaviy kurslar', href: '/courses?subject=free', st: SECTION_STYLE.free, status: 'open' as const },
+        { key: 'free', name: 'Bepul kurslar', desc: 'Bepul namunaviy kurslar', href: '/courses?subject=free', st: SECTION_STYLE.free, premium: null },
     ];
 
     return (
@@ -160,7 +169,7 @@ export default function AppHome() {
                                 {isUstoz
                                     ? 'Barcha kurslar ochiq'
                                     : activePackages
-                                          .map((p) => `${packageLabel(p.package)}${p.until ? ` · ${formatUntil(p.until)} gacha` : ''}`)
+                                          .map((p) => `${p.name}${p.until ? ` · ${formatUntil(p.until)} gacha` : ''}`)
                                           .join(' | ')}
                             </p>
                         </div>
@@ -186,33 +195,43 @@ export default function AppHome() {
                 <h2 className="text-lg font-black text-slate-900 mb-3 px-1">Bo‘limlar</h2>
                 <div className="max-md:bg-white max-md:rounded-3xl max-md:border max-md:border-slate-100 max-md:shadow-soft max-md:divide-y max-md:divide-slate-100 max-md:overflow-hidden md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-3">
                     {sections.map((item) => (
-                        <Link
+                        <div
                             key={item.key}
-                            href={item.href}
-                            className="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 active:bg-slate-100 transition-colors group md:bg-white md:rounded-2xl md:border md:border-slate-100 md:shadow-soft md:hover:border-primary/30"
+                            className="md:bg-white md:rounded-2xl md:border md:border-slate-100 md:shadow-soft md:hover:border-primary/30 md:transition-colors"
                         >
-                            <span className={`w-11 h-11 rounded-2xl ${item.st.tile} flex items-center justify-center text-xl shrink-0`}>
-                                {item.st.emoji}
-                            </span>
-                            <span className="flex-1 min-w-0">
-                                <span className="block font-bold text-slate-900 leading-snug truncate">{item.name}</span>
-                                {item.desc && <span className="block text-sm text-slate-500 truncate">{item.desc}</span>}
-                            </span>
-                            {item.status === 'active' && (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold shrink-0">
-                                    <Crown size={11} /> Faol
+                            <Link
+                                href={item.href}
+                                className="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 active:bg-slate-100 transition-colors group md:rounded-2xl"
+                            >
+                                <span className={`w-11 h-11 rounded-2xl ${item.st.tile} flex items-center justify-center text-xl shrink-0`}>
+                                    {item.st.emoji}
                                 </span>
-                            )}
-                            {item.status === 'locked' && (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-[11px] font-bold shrink-0">
-                                    <Lock size={11} /> Yopiq
+                                <span className="flex-1 min-w-0">
+                                    <span className="block font-bold text-slate-900 leading-snug truncate">{item.name}</span>
+                                    {item.desc && <span className="block text-sm text-slate-500 truncate">{item.desc}</span>}
                                 </span>
+                                <ChevronRight size={16} className="text-slate-300 group-hover:text-primary transition-colors shrink-0" />
+                            </Link>
+
+                            {/* Whole-subject Premium: small line button (single courses can still be bought separately) */}
+                            {item.premium && (
+                                <div className="px-4 pb-3.5 -mt-1 pl-[4.75rem]">
+                                    {item.premium.active ? (
+                                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                                            <Crown size={12} /> Premium faol{item.premium.until ? ` · ${formatUntil(item.premium.until)} gacha` : ''}
+                                        </span>
+                                    ) : (
+                                        <Link
+                                            href={`/premium?subject=${item.key}`}
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/30 text-primary text-xs font-bold hover:bg-primary hover:text-white transition-colors"
+                                        >
+                                            <Crown size={12} /> To‘liq Premium olish
+                                            {item.premium.price > 0 && <span className="font-semibold opacity-80">· {formatSom(item.premium.price)} / oy</span>}
+                                        </Link>
+                                    )}
+                                </div>
                             )}
-                            {item.status === 'open' && (
-                                <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[11px] font-bold shrink-0">Ochiq</span>
-                            )}
-                            <ChevronRight size={16} className="text-slate-300 group-hover:text-primary transition-colors shrink-0" />
-                        </Link>
+                        </div>
                     ))}
                 </div>
             </section>

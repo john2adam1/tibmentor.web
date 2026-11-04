@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { activityService, profileService } from '@/services';
 import { ActivityStatsResponse, TestHistoryRes } from '@/types/mobile-api';
 import { Trash2, Camera, LogOut, MessageSquare, HelpCircle, FileText, ExternalLink, MessageCircle, ChevronRight, Crown, GraduationCap, PlayCircle, BookOpen, CheckCircle2 } from 'lucide-react';
-import { formatUntil, packageLabel } from '@/lib/premium';
+import { formatUntil } from '@/lib/premium';
 import { useRouter } from 'next/navigation';
 import Modal from '@/components/ui/Modal';
 
@@ -224,14 +224,14 @@ export default function ProfilePage() {
                     ) : activePackages.length > 0 ? (
                         <div className="space-y-3">
                             {activePackages.map((p) => (
-                                <div key={p.package} className="rounded-3xl bg-brand-hero text-white p-5 shadow-premium flex items-center gap-3">
+                                <div key={p.subject_id} className="rounded-3xl bg-brand-hero text-white p-5 shadow-premium flex items-center gap-3">
                                     <Crown size={22} className="shrink-0" />
                                     <div className="min-w-0 flex-1">
-                                        <p className="font-black leading-tight">Premium: {packageLabel(p.package)}</p>
+                                        <p className="font-black leading-tight">Premium: {p.name}</p>
                                         {p.until && <p className="text-sm text-white/80 mt-0.5">{formatUntil(p.until)} gacha</p>}
                                     </div>
                                     <Link
-                                        href={`/premium?package=${p.package}`}
+                                        href={`/premium?subject=${p.subject_id}`}
                                         className="px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 text-sm font-bold shrink-0 transition-colors"
                                     >
                                         Uzaytirish

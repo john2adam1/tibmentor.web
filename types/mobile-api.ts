@@ -58,11 +58,13 @@ export interface ChangePasswordBody {
 // User/Profile Types
 // ============================================================================
 
+/** @deprecated legacy fixed packages — premium is now sold per subject (subject_id) */
 export type PremiumPackage = 'fundamental' | 'preclinical' | 'clinical';
 export type ContentType = 'video' | 'audio' | 'document' | 'test';
 
 export interface UserPackageStatus {
-  package: PremiumPackage;
+  subject_id: string;
+  name: string;
   is_active: boolean;
   until: string | null;
 }
@@ -128,6 +130,11 @@ export interface MobileCourseRes {
   has_access: boolean;
   lessons: number;
   tests: number;
+  /** Subject that unlocks this course with premium (T-12) */
+  subject_id?: string;
+  /** Subject premium price per month; 0/undefined = subject is not premium */
+  premium_price?: number;
+  /** @deprecated */
   package?: PremiumPackage | null;
   modules: MobileCourseModuleRes[];
   price?: CoursePriceOption[];
@@ -246,6 +253,7 @@ export interface Subject {
   is_active: boolean;
   order_num?: number;
   total_courses?: number;
+  /** @deprecated */
   package?: PremiumPackage | null;
   created_at: string;
   updated_at: string;
@@ -561,7 +569,7 @@ export type Language = 'uz' | 'ru' | 'en';
 export interface PromocodeReq {
   promocode: string;
   type?: 'premium' | string;
-  package?: PremiumPackage;
+  subject_id?: string;
   tariff_id?: string;
   course_id?: string;
 }
@@ -634,7 +642,10 @@ export interface QuizFinishRes {
 // ============================================================================
 
 export interface PremiumPackageOffer {
-  package: PremiumPackage;
+  subject_id: string;
+  name: string;
+  image_url?: string;
+  courses: string[];
   price: number;
   duration_months: number;
   is_active: boolean;
@@ -649,7 +660,7 @@ export interface PremiumRes {
 }
 
 export interface PremiumOrderBody {
-  package: PremiumPackage;
+  subject_id: string;
   promocode_id?: string;
 }
 

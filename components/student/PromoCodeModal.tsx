@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { X, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { promocodeService } from '@/services';
-import { PremiumPackage, PromocodeRes } from '@/types/mobile-api';
-import { formatSom } from '@/lib/premium';
+import { PromocodeRes } from '@/types/mobile-api';
+import { formatSom, premiumErrorMessage } from '@/lib/premium';
 
 interface PromoCodeModalProps {
     isOpen: boolean;
     onClose: () => void;
     packageName: string;
-    pkg: PremiumPackage;
+    subjectId: string;
     basePrice: number;
     onPurchase: (promoId?: string) => void;
     isPurchasing: boolean;
@@ -18,7 +18,7 @@ export function PromoCodeModal({
     isOpen,
     onClose,
     packageName,
-    pkg,
+    subjectId,
     basePrice,
     onPurchase,
     isPurchasing,
@@ -34,7 +34,7 @@ export function PromoCodeModal({
             setError('');
             setAppliedPromo(null);
         }
-    }, [isOpen, pkg]);
+    }, [isOpen, subjectId]);
 
     const handleCheckPromo = async () => {
         if (!promoCode.trim()) return;
@@ -47,16 +47,16 @@ export function PromoCodeModal({
             const res = await promocodeService.check({
                 promocode: promoCode,
                 type: 'premium',
-                package: pkg,
+                subject_id: subjectId,
             });
 
             if (res.is_valid) {
                 setAppliedPromo(res);
             } else {
-                setError(res.message || 'Promokod yaroqsiz');
+                setError(premiumErrorMessage(res.message) || 'Promokod yaroqsiz');
             }
         } catch (err: any) {
-            setError(err.message || 'Tekshirishda xatolik yuz berdi');
+            setError(premiumErrorMessage(err.message) || 'Tekshirishda xatolik yuz berdi');
         } finally {
             setLoading(false);
         }

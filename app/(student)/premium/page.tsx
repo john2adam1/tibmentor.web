@@ -3,15 +3,15 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { premiumService } from '@/services';
-import { PremiumPackage, PremiumPackageOffer, PremiumRes } from '@/types/mobile-api';
-import { formatSom, formatUntil, packageLabel } from '@/lib/premium';
+import { PremiumPackageOffer, PremiumRes } from '@/types/mobile-api';
+import { formatSom, formatUntil, premiumErrorMessage } from '@/lib/premium';
 import { PromoCodeModal } from '@/components/student/PromoCodeModal';
 import Link from 'next/link';
 import { ChevronLeft, Crown } from 'lucide-react';
 
 function PremiumContent() {
     const searchParams = useSearchParams();
-    const preselect = searchParams?.get('package') as PremiumPackage | null;
+    const preselect = searchParams?.get('subject') || null;
 
     const [data, setData] = useState<PremiumRes | null>(null);
     const [loading, setLoading] = useState(true);
@@ -19,7 +19,7 @@ function PremiumContent() {
     const [selected, setSelected] = useState<PremiumPackageOffer | null>(null);
     const [promoOpen, setPromoOpen] = useState(false);
     const [purchasing, setPurchasing] = useState(false);
-    const [chosen, setChosen] = useState<PremiumPackage | null>(preselect);
+    const [chosen, setChosen] = useState<string | null>(preselect);
 
     const load = async () => {
         try {
@@ -48,7 +48,7 @@ function PremiumContent() {
         setPurchasing(true);
         try {
             const order = await premiumService.createOrder({
-                package: selected.package,
+                subject_id: selected.subject_id,
                 promocode_id: promoId,
             });
             if (order.url) {
@@ -58,7 +58,7 @@ function PremiumContent() {
             await load();
             setPromoOpen(false);
         } catch (err: any) {
-            setError(err.message || 'Toʻlovni boshlashda xatolik');
+            setError(premiumErrorMessage(err.message) || 'Toʻlovni boshlashda xatolik');
         } finally {
             setPurchasing(false);
         }
@@ -89,17 +89,15 @@ function PremiumContent() {
     }
 
     const packages = data?.packages || [];
+    // Active modules can only be picked when the user came to extend them (?subject=)
+    const selectable = (p: PremiumPackageOffer) => !p.is_active || p.subject_id === preselect;
     const ordered = [...packages].sort((a, b) => {
-        if (preselect && a.package === preselect) return -1;
-        if (preselect && b.package === preselect) return 1;
+        if (preselect && a.subject_id === preselect) return -1;
+        if (preselect && b.subject_id === preselect) return 1;
         return 0;
     });
-    const current = ordered.find((p) => p.package === chosen) || ordered[0];
-    const PKG_STYLE: Record<string, { emoji: string; tile: string; desc: string }> = {
-        fundamental: { emoji: '🫀', tile: 'bg-rose-50', desc: 'Anatomiya, fiziologiya, biokimyo' },
-        preclinical: { emoji: '🔬', tile: 'bg-blue-50', desc: 'Patologiya, farmakologiya' },
-        clinical: { emoji: '🩺', tile: 'bg-sky-50', desc: 'Gematologiya, pulmonologiya, pediatriya' },
-    };
+    const current =
+        ordered.find((p) => p.subject_id === chosen && selectable(p)) || ordered.find(selectable);
 
     return (
         <div className="max-w-3xl mx-auto pb-32 md:pb-10">
@@ -125,7 +123,7 @@ function PremiumContent() {
                     <span className="text-lg font-bold text-white/70"> / oy</span>
                 </p>
                 <ul className="space-y-1.5 text-sm md:text-base text-white/90 list-disc pl-5">
-                    <li>Fundamental, preklinik yoki klinik fanlar</li>
+                    <li>Modulni (fanni) tanlang, uning barcha kurslari ochiladi</li>
                     <li>Har bir modul alohida, har oy to‘lov</li>
                 </ul>
             </div>
@@ -133,63 +131,83 @@ function PremiumContent() {
 
             {error && <div className="p-4 mb-4 bg-red-50 text-red-600 rounded-2xl text-sm font-medium">{error}</div>}
 
-            <p className="text-sm font-bold text-slate-700 mb-3 px-1">Qaysi modulni ochmoqchisiz? Har biri alohida, oylik.</p>
-            <div className="space-y-3 lg:grid lg:grid-cols-3 lg:gap-4 lg:space-y-0">
-                {ordered.map((pkg) => {
-                    const st = PKG_STYLE[pkg.package] || PKG_STYLE.fundamental;
-                    const selectedCard = current?.package === pkg.package;
-                    const canBuy = pkg.price > 0;
-                    return (
-                        <button
-                            key={pkg.package}
-                            onClick={() => setChosen(pkg.package)}
-                            className={`w-full text-left flex lg:flex-col lg:items-start items-center gap-4 p-4 bg-white rounded-3xl border-2 transition-all ${
-                                selectedCard ? 'border-primary shadow-premium' : 'border-slate-100 shadow-soft hover:border-primary/30'
-                            }`}
-                        >
-                            <span className={`w-12 h-12 rounded-2xl ${st.tile} flex items-center justify-center text-2xl shrink-0`}>
-                                {st.emoji}
-                            </span>
-                            <span className="min-w-0 flex-1">
-                                <span className="block font-black text-slate-900 leading-snug">{packageLabel(pkg.package)}</span>
-                                <span className="block text-sm text-slate-500">{st.desc}</span>
-                                {pkg.is_active && (
-                                    <span className="inline-block mt-1 text-xs font-bold text-emerald-600">
-                                        Faol{pkg.until ? ` · ${formatUntil(pkg.until)} gacha` : ''}
+            {packages.length === 0 ? (
+                <div className="bg-white rounded-3xl border border-dashed border-slate-200 p-8 text-center text-slate-500 font-semibold">
+                    Narx hali belgilanmagan
+                </div>
+            ) : (
+                <>
+                    <p className="text-sm font-bold text-slate-700 mb-3 px-1">Qaysi modulni ochmoqchisiz? Har biri alohida, oylik.</p>
+                    <div className="space-y-3 lg:grid lg:grid-cols-3 lg:gap-4 lg:space-y-0">
+                        {ordered.map((pkg) => {
+                            const can = selectable(pkg);
+                            const selectedCard = current?.subject_id === pkg.subject_id;
+                            return (
+                                <button
+                                    key={pkg.subject_id}
+                                    onClick={() => can && setChosen(pkg.subject_id)}
+                                    disabled={!can}
+                                    className={`w-full text-left flex lg:flex-col lg:items-start items-center gap-4 p-4 bg-white rounded-3xl border-2 transition-all ${
+                                        selectedCard
+                                            ? 'border-primary shadow-premium'
+                                            : can
+                                              ? 'border-slate-100 shadow-soft hover:border-primary/30'
+                                              : 'border-slate-100 shadow-soft opacity-80 cursor-default'
+                                    }`}
+                                >
+                                    <span className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-2xl shrink-0 overflow-hidden">
+                                        {pkg.image_url ? (
+                                            <img src={pkg.image_url} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span>📚</span>
+                                        )}
                                     </span>
-                                )}
-                            </span>
-                            <span className="text-sm font-black text-slate-900 shrink-0 text-right">
-                                {canBuy ? formatSom(pkg.price) : '—'}
-                                {canBuy && <span className="text-xs font-semibold text-slate-400"> / oy</span>}
-                            </span>
-                        </button>
-                    );
-                })}
-            </div>
-            <p className="text-sm text-slate-500 mt-4 px-1">Bir nechta modulni ham olish mumkin — har biri o‘z to‘lovi bilan.</p>
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block font-black text-slate-900 leading-snug">{pkg.name}</span>
+                                        {pkg.courses?.length > 0 && (
+                                            <span className="block text-sm text-slate-500">{pkg.courses.join(', ')}</span>
+                                        )}
+                                        {pkg.is_active && (
+                                            <span className="inline-block mt-1 text-xs font-bold text-emerald-600">
+                                                Faol{pkg.until ? ` · ${formatUntil(pkg.until)} gacha` : ''}
+                                            </span>
+                                        )}
+                                    </span>
+                                    <span className="text-sm font-black text-slate-900 shrink-0 text-right">
+                                        {pkg.price > 0 ? formatSom(pkg.price) : '—'}
+                                        {pkg.price > 0 && <span className="text-xs font-semibold text-slate-400"> / oy</span>}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <p className="text-sm text-slate-500 mt-4 px-1">Bir nechta modulni ham olish mumkin — har biri o‘z to‘lovi bilan.</p>
+                </>
+            )}
 
             {/* CTA */}
             <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] inset-x-4 z-30 md:static md:mt-8 md:inset-auto space-y-2">
-                {current && current.price > 0 ? (
+                {packages.length === 0 ? null : current && current.price > 0 ? (
                     <button
                         onClick={() => handleBuy(current)}
                         className="w-full py-4 bg-brand-gradient text-white rounded-2xl font-bold shadow-premium hover:opacity-95 active:scale-[0.99] transition-all"
                     >
-                        {packageLabel(current.package)} Premiumini {current.is_active ? 'uzaytirish' : 'olish'}
+                        {current.name} Premiumini {current.is_active ? 'uzaytirish' : 'olish'}
                     </button>
                 ) : (
-                    <p className="text-center text-sm font-semibold text-slate-400 py-3">Narx hali belgilanmagan</p>
+                    <p className="text-center text-sm font-semibold text-slate-400 py-3">
+                        Barcha modullar faol
+                    </p>
                 )}
-                <p className="text-center text-xs text-slate-500">To‘lov Click orqali</p>
+                {packages.length > 0 && <p className="text-center text-xs text-slate-500">To‘lov Click orqali</p>}
             </div>
 
             {selected && (
                 <PromoCodeModal
                     isOpen={promoOpen}
                     onClose={() => setPromoOpen(false)}
-                    packageName={packageLabel(selected.package)}
-                    pkg={selected.package}
+                    packageName={selected.name}
+                    subjectId={selected.subject_id}
                     basePrice={selected.price}
                     onPurchase={handleConfirm}
                     isPurchasing={purchasing}
