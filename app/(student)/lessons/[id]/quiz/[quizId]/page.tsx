@@ -7,7 +7,8 @@ import { ArrowLeft, Check, Clock, RefreshCw, X } from 'lucide-react';
 import { quizService } from '@/services';
 import { QuizDetail, QuizFinishRes, QuizQuestion } from '@/types/mobile-api';
 import { TEST_TIME_UP, ATTEMPT_FINISHED } from '@/lib/premium';
-import { celebrate, withCourse } from '@/lib/celebrate';
+import { withCourse } from '@/lib/celebrate';
+import { celebrateResult, getQuizTier } from '@/lib/quiz-result';
 
 type AnswerState = {
     selectedId: string;
@@ -37,6 +38,7 @@ export default function QuizPage() {
     const [result, setResult] = useState<QuizFinishRes | null>(null);
     const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
     const finishingRef = useRef(false);
+    const [shownPercent, setShownPercent] = useState(0);
 
     const currentQuestion: QuizQuestion | undefined = quiz?.questions[index];
 
@@ -73,11 +75,26 @@ export default function QuizPage() {
         startQuiz();
     }, [startQuiz]);
 
-    // Same celebration as finishing a lesson (only when the test was just completed)
+    // Result animation: count the percent up, and celebrate according to the score
+    // (confetti only when the test was just completed, not when reopening history).
     useEffect(() => {
-        if (phase === 'result' && result && !resumeAttemptId) {
-            celebrate();
-        }
+        if (phase !== 'result' || !result) return;
+        const target = Math.max(0, Math.min(100, Math.round(result.percent)));
+
+        if (!resumeAttemptId) celebrateResult(target);
+
+        setShownPercent(0);
+        const duration = 1100;
+        const start = performance.now();
+        let raf = 0;
+        const tick = (now: number) => {
+            const t = Math.min(1, (now - start) / duration);
+            const eased = 1 - Math.pow(1 - t, 3);
+            setShownPercent(Math.round(target * eased));
+            if (t < 1) raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(raf);
     }, [phase, result, resumeAttemptId]);
 
     const finishAttempt = useCallback(async (id: string) => {
@@ -191,6 +208,7 @@ export default function QuizPage() {
 
     if (phase === 'result' && result) {
         const percent = Math.max(0, Math.min(100, Math.round(result.percent)));
+        const tier = getQuizTier(percent);
         const R = 70;
         const C = 2 * Math.PI * R;
         return (
@@ -202,35 +220,40 @@ export default function QuizPage() {
                     <ArrowLeft size={18} /> Test natijasi
                 </button>
 
-                <div className="bg-white rounded-3xl border border-gray-100 p-8 text-center shadow-premium">
-                    <div className="relative w-52 h-52 mx-auto mb-6">
-                        <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90">
+                <div className="bg-white rounded-3xl border border-gray-100 p-8 text-center shadow-premium overflow-hidden">
+                    <div className="relative w-52 h-52 mx-auto mb-5">
+                        <div className={`absolute inset-3 rounded-full blur-2xl animate-glow ${tier.glowClass}`} />
+                        <svg viewBox="0 0 160 160" className="relative w-full h-full -rotate-90">
                             <defs>
                                 <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
-                                    <stop offset="0%" stopColor="#31D0FC" />
-                                    <stop offset="100%" stopColor="#0A63E8" />
+                                    <stop offset="0%" stopColor={tier.ring[0]} />
+                                    <stop offset="100%" stopColor={tier.ring[1]} />
                                 </linearGradient>
                             </defs>
-                            <circle cx="80" cy="80" r={R} fill="none" stroke="#E2E8F0" strokeWidth="14" />
+                            <circle cx="80" cy="80" r={R} fill="none" stroke="currentColor" className="text-slate-200 dark:text-[#263461]" strokeWidth="14" />
                             <circle
                                 cx="80" cy="80" r={R} fill="none" stroke="url(#ring)" strokeWidth="14" strokeLinecap="round"
                                 strokeDasharray={C}
-                                strokeDashoffset={C - (C * percent) / 100}
-                                className="transition-all duration-1000 ease-out"
+                                strokeDashoffset={C - (C * shownPercent) / 100}
                             />
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-5xl font-black text-slate-900 tracking-tight">{percent}%</span>
+                            <span className={`text-5xl font-black tracking-tight tabular-nums ${tier.textClass}`}>{shownPercent}%</span>
                             <span className="text-xs font-semibold text-gray-400 mt-1">to‘g‘ri</span>
                         </div>
                     </div>
 
-                    <h1 className="text-lg font-black text-slate-900">Test yakunlandi</h1>
-                    <p className="text-gray-400 font-medium text-sm mt-1 mb-8">
-                        {result.correct_count} / {result.total_count} to‘g‘ri javob
-                    </p>
+                    <div className={`text-5xl mb-3 inline-block ${tier.emojiAnim}`} aria-hidden="true">{tier.emoji}</div>
 
-                    <div className="space-y-3">
+                    <div className="animate-fade-up" style={{ animationDelay: '0.35s' }}>
+                        <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest mb-2 ${tier.chipClass}`}>
+                            {result.correct_count} / {result.total_count} to‘g‘ri javob
+                        </span>
+                        <h1 className="text-xl font-black text-slate-900">{tier.title}</h1>
+                        <p className="text-gray-500 font-medium text-sm mt-1.5 mb-8 leading-relaxed">{tier.message}</p>
+                    </div>
+
+                    <div className="space-y-3 animate-fade-up" style={{ animationDelay: '0.55s' }}>
                         {result.next_lesson_id && (
                             <Link
                                 href={withCourse(`/lessons/${result.next_lesson_id}`, courseId)}

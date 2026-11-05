@@ -50,7 +50,7 @@ export default function BannerSlider({ banners }: BannerSliderProps) {
                 {banners.map((banner) => (
                     <div
                         key={banner.id}
-                        className="w-full flex-shrink-0 flex flex-col md:block md:relative h-full cursor-pointer bg-white md:bg-transparent"
+                        className="w-full flex-shrink-0 flex flex-col md:block md:relative h-full cursor-pointer bg-white md:!bg-transparent"
                         onClick={() => banner.link_url && window.open(banner.link_url, '_blank')}
                     >
                         {/* Media Container */}
@@ -82,16 +82,16 @@ export default function BannerSlider({ banners }: BannerSliderProps) {
 
                         {/* Content Container */}
                         <div className="relative md:absolute md:inset-0 p-4 md:p-6 flex flex-col justify-end items-start pointer-events-none">
-                            <div className="max-w-sm w-full bg-slate-50 md:bg-black/30 md:backdrop-blur-md rounded-2xl p-4 border border-gray-100 md:border-white/10 shadow-soft md:shadow-lg pointer-events-auto transform transition-transform duration-300 hover:scale-[1.02]">
+                            <div className="max-w-sm w-full bg-slate-50 md:!bg-black/30 md:backdrop-blur-md rounded-2xl p-4 border border-gray-100 md:!border-white/10 shadow-soft md:shadow-lg pointer-events-auto transform transition-transform duration-300 hover:scale-[1.02]">
                                 <div className="space-y-2">
                                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary text-white rounded-full font-black text-[9px] uppercase tracking-widest shadow-lg">
                                         Yangi e'lon
                                     </div>
-                                    <h2 className="text-base md:text-lg font-black text-gray-900 md:text-white leading-tight drop-shadow-sm">
+                                    <h2 className="text-base md:text-lg font-black text-gray-900 md:!text-white leading-tight drop-shadow-sm">
                                         {banner.title}
                                     </h2>
                                     {banner.description && (
-                                        <p className="text-gray-500 md:text-white/90 text-xs md:text-sm font-medium leading-snug line-clamp-2 drop-shadow-sm">
+                                        <p className="text-gray-500 md:!text-white/90 text-xs md:text-sm font-medium leading-snug line-clamp-2 drop-shadow-sm">
                                             {banner.description}
                                         </p>
                                     )}

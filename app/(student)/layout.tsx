@@ -14,6 +14,7 @@ import { notificationService } from '@/services';
 import { Bell } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import PremiumButton from '@/components/student/PremiumButton';
+import { ThemeProvider } from '@/lib/theme';
 
 
 export default function StudentLayout({
@@ -21,6 +22,14 @@ export default function StudentLayout({
 }: {
     children: React.ReactNode;
 }) {
+    return (
+        <ThemeProvider>
+            <StudentShell>{children}</StudentShell>
+        </ThemeProvider>
+    );
+}
+
+function StudentShell({ children }: { children: React.ReactNode }) {
     const { user, isLoading } = useAuth();
     const router = useRouter();
     const pathname = usePathname() || '';
@@ -49,7 +58,7 @@ export default function StudentLayout({
 
     if (isLoading || !user) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-white">
+            <div className="flex items-center justify-center min-h-screen bg-background">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
             </div>
         );

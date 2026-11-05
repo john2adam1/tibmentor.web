@@ -5,14 +5,17 @@ import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import { activityService, profileService } from '@/services';
 import { ActivityStatsResponse, TestHistoryRes } from '@/types/mobile-api';
-import { Trash2, Camera, LogOut, MessageSquare, HelpCircle, FileText, ExternalLink, MessageCircle, ChevronRight, Crown, GraduationCap, PlayCircle, BookOpen, CheckCircle2 } from 'lucide-react';
+import { Trash2, Camera, LogOut, MessageSquare, HelpCircle, FileText, ExternalLink, MessageCircle, ChevronRight, Crown, GraduationCap, PlayCircle, BookOpen, CheckCircle2, Moon, Sun } from 'lucide-react';
 import { formatUntil } from '@/lib/premium';
+import { useTheme } from '@/lib/theme';
 import { useRouter } from 'next/navigation';
 import Modal from '@/components/ui/Modal';
+import LogoutConfirmModal from '@/components/student/LogoutConfirmModal';
 
 export default function ProfilePage() {
     const { user, logout, refreshUser } = useAuth();
     const router = useRouter();
+    const { theme, toggleTheme } = useTheme();
     const [activityStats, setActivityStats] = useState<ActivityStatsResponse | null>(null);
     const [testHistory, setTestHistory] = useState<TestHistoryRes | null>(null);
 
@@ -20,6 +23,7 @@ export default function ProfilePage() {
     const [showPasswordForm, setShowPasswordForm] = useState(false);
     const [showEditProfileForm, setShowEditProfileForm] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [showGuideModal, setShowGuideModal] = useState(false);
     const [showTestHistory, setShowTestHistory] = useState(false);
 
@@ -337,6 +341,23 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="bg-white rounded-3xl border border-slate-100 shadow-soft divide-y divide-slate-100 overflow-hidden">
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked={theme === 'dark'}
+                            onClick={toggleTheme}
+                            className={rowCls}
+                        >
+                            <span className={tile}>{theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}</span>
+                            <span className="flex-1 font-semibold text-slate-800">Tungi rejim</span>
+                            <span
+                                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${theme === 'dark' ? 'bg-primary' : 'bg-slate-200'}`}
+                            >
+                                <span
+                                    className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full !bg-white shadow transition-transform ${theme === 'dark' ? 'translate-x-5' : ''}`}
+                                />
+                            </span>
+                        </button>
                         <button onClick={() => setShowGuideModal(true)} className={rowCls}>
                             <span className={tile}><HelpCircle size={18} /></span>
                             <span className="flex-1 font-semibold text-slate-800">Yo‘riqnoma</span>
@@ -350,7 +371,7 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="bg-white rounded-3xl border border-slate-100 shadow-soft divide-y divide-slate-100 overflow-hidden">
-                        <button onClick={logout} className={`${rowCls} text-red-600`}>
+                        <button onClick={() => setShowLogoutConfirm(true)} className={`${rowCls} text-red-600`}>
                             <span className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center shrink-0"><LogOut size={18} /></span>
                             <span className="flex-1 font-semibold">Hisobdan chiqish</span>
                         </button>
@@ -363,6 +384,14 @@ export default function ProfilePage() {
             </div>
 
             {/* Modals */}
+            <LogoutConfirmModal
+                isOpen={showLogoutConfirm}
+                onClose={() => setShowLogoutConfirm(false)}
+                onConfirm={() => {
+                    setShowLogoutConfirm(false);
+                    logout();
+                }}
+            />
             <Modal
                 isOpen={showEditProfileForm}
                 onClose={() => {

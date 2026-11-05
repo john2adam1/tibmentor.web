@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 import BrandWordmark from '@/components/common/BrandWordmark';
 import PremiumButton from '@/components/student/PremiumButton';
+import LogoutConfirmModal from '@/components/student/LogoutConfirmModal';
 import { BRAND_NAME } from '@/lib/brand';
 import { NAV_ITEMS, isNavActive } from '@/lib/nav';
 import { cn } from '@/lib/utils';
@@ -24,6 +25,7 @@ export default function Sidebar({ hasUnread }: SidebarProps) {
     const pathname = usePathname() || '';
     const onMyTab = useSearchParams()?.get('tab') === 'my';
     const { logout } = useAuth();
+    const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
 
     const itemClass = (active: boolean) =>
         cn(
@@ -43,6 +45,7 @@ export default function Sidebar({ hasUnread }: SidebarProps) {
     const notifActive = pathname.startsWith('/notifications');
 
     return (
+        <>
         <aside className="hidden md:flex fixed inset-y-0 left-0 z-30 w-24 lg:w-64 bg-white border-r border-slate-200 flex-col h-screen overflow-hidden">
             {/* Logo */}
             <div className="px-3 lg:px-6 pt-6 pb-4 flex justify-center lg:justify-start">
@@ -90,7 +93,7 @@ export default function Sidebar({ hasUnread }: SidebarProps) {
                     </span>
                 </Link>
                 <button
-                    onClick={() => logout()}
+                    onClick={() => setShowLogoutConfirm(true)}
                     title="Chiqish"
                     className="w-full flex flex-col lg:flex-row items-center lg:gap-3 gap-1 px-2 py-2.5 lg:px-3 lg:py-3 rounded-2xl text-[10px] lg:text-sm font-semibold text-slate-500 hover:bg-red-50 hover:text-red-500 transition-all group"
                 >
@@ -101,5 +104,15 @@ export default function Sidebar({ hasUnread }: SidebarProps) {
                 </button>
             </div>
         </aside>
+
+        <LogoutConfirmModal
+            isOpen={showLogoutConfirm}
+            onClose={() => setShowLogoutConfirm(false)}
+            onConfirm={() => {
+                setShowLogoutConfirm(false);
+                logout();
+            }}
+        />
+        </>
     );
 }
